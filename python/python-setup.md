@@ -145,7 +145,7 @@ virtualenvwrapper simplifies the usage of virtualenv through simpler commands. I
 		rmvirtualenv <environment name>
 
 
-	Example:
+	**Example:**
 
 		rmvirtualenv my-env
 
