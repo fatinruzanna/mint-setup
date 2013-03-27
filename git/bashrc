@@ -1,0 +1,22 @@
+##################################
+#
+# Git Bash Completion
+#
+##################################
+# Source a git completion script
+if [ -f $HOME/bin/git-completion.sh ]; then
+       . $HOME/bin/git-completion.sh
+else
+  echo "Could not find git completion script"
+fi
+ 
+# Display the current git branch in the command prompt
+__git_ps1 () 
+{ 
+    local b="$(git symbolic-ref HEAD 2>/dev/null)";
+    if [ -n "$b" ]; then
+        printf " (%s)" "${b##refs/heads/}";
+    fi
+}
+export PS1="${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[01;34m\] \w\$( __git_ps1 ) \$\[\033[00m\] "
+

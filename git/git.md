@@ -1,0 +1,26 @@
+Git Setup
+========
+
+Git comes pre-installed in Linux Mint.
+
+
+Update Terminal Prompt with Git branch
+----------------------------------
+1. Clone git repository
+	git clone git://git.kernel.org/pub/scm/git/git.git
+
+2. Copy git-completion.bash to */bin/
+	(sudo) cp git/contrib/completion/git-completion.bash git-completion.sh
+	(sudo) chmod u+x git-completion.sh
+	(sudO) mkdir ~/bin
+	(sudO) cp git-completion.sh ~/bin
+
+3. Add to .bashrc file with contents in "bashrc" file
+
+
+References:
+* http://wiki.collectionspace.org/display/~aronr/Displaying+the+current+git+branch+in+your+command+prompt+(Unix-like+systems)
+* https://blogs.oracle.com/linuxnstuff/entry/recommended_git-completionbash
+* http://www.edmondscommerce.co.uk/linux/tip-have-git-branch-displayed-in-bash-prompt/
+
+
