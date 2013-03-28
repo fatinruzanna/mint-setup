@@ -15,9 +15,11 @@ Steps in Setting Linux Mint as your Workstation
 * Git
 	* Git commands
 
+
 * VMWare Workstation
 	* VM tools
 	* Shared folder
+
 
 * Sublime Text 2
 	* Setup
@@ -25,22 +27,19 @@ Steps in Setting Linux Mint as your Workstation
 	* Snippets
 	* Package Manager
 
-* DiffMerge
-	* Setup
-	* Git configuration
 
 * PHPStorm
 	* Setup
 
+
 * Sphinx
 	* Setup
+	* Usage
+
 
 * SASS
-	* Setup
+	* Usage
 
-* Node.js
-	* Setup
-	* NVM
 
 * Testacular
 	* Setup
