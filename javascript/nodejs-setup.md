@@ -4,6 +4,9 @@ Setup Node.js
 Setup Node.js Version Manager (NVM)
 -----------------------------------
 
+**Pre-requisite:** Git
+
+
 Since Node.js is still in active development (it has yet to reach ver. 1.0!), it useful to have a tool that allows you to install multiple versions of Node.js on your machine. When a new version is released, you may want to test your application with the new version before using it in production.
 
 Please refer to the last section if you do not wish to use NVM.
@@ -21,7 +24,9 @@ Please refer to the last section if you do not wish to use NVM.
 
 
 2. Place the contents in the _bashrc_ file (section: Node.js Version Manager) to your .bashrc file.
-**NOTE:** Replace **NVM_HOME** variable with the path to your local nvm git directory. In the example given, NVM repository is cloned at ~/git/nvm.
+**NOTE:** Replace **NVM_HOME** variable with the path to your local nvm git directory. In the example given, NVM repository is cloned at ~/git/nvm. Source your .bashrc file to use nvm immediately:
+
+		source ~/.bashrc
 
 
 Using NVM
@@ -79,15 +84,14 @@ Using NVM
 	**NOTE:** Only major and minor versions are required. In the example given, NVM will use the latest 0.10.x version
 
 
+**References:**
+* https://github.com/brianloveswords/nvm
+
+
 Setup Node.js without NVM
 -------------------------
 
 1. Issue following command to install node.js:
 
 		(sudo) apt-get install nodejs
-
-
-
-**References:**
-* https://github.com/brianloveswords/nvm
 
