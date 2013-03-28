@@ -1,6 +1,11 @@
 Setup DiffMerge for Git
 ========================
 
+**Pre-requisite:**
+* Git
+
+
+
 1. Install DiffMerge tool (DiffMerge for Ubuntu) from http://www.sourcegear.com/diffmerge/.
 
 2. Downloaded file is a Debian package (.deb file). Double-click the file to run installation.
