@@ -5,6 +5,8 @@ Setup DiffMerge for Git
 * Git
 
 
+----
+
 
 1. Install DiffMerge tool (DiffMerge for Ubuntu) from http://www.sourcegear.com/diffmerge/.
 
@@ -40,4 +42,5 @@ Setup DiffMerge for Git
 
 
 **References:**
-*http://adventuresincoding.com/2010/04/how-to-setup-git-to-use-diffmerge
+* http://adventuresincoding.com/2010/04/how-to-setup-git-to-use-diffmerge
+
