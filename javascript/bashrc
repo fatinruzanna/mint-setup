@@ -1,0 +1,13 @@
+####################################
+#
+# Node.js Version Manager
+#
+####################################
+export NVM_HOME="$HOME/git/nvm"
+if [ -f "$NVM_HOME/nvm.sh" ]; then
+    source "$NVM_HOME/nvm.sh"
+fi
+
+if [ -f "$NVM_HOME/bash_completion" ]; then
+    source "$NVM_HOME/bash_completion"
+fi
