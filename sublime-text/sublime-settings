@@ -1,4 +1,12 @@
 {
-	"draw_white_space": "all",
-	"font_size": 12
+    "draw_white_space": "all",
+    "font_size": 12,
+
+    "font": "monospace",
+    "ensure_newline_at_eof_on_save": true,
+    "translate_tabs_to_spaces": true,
+    "trim_trailing_white_space_on_save": true,
+
+    // Python PEP8
+    "rulers": [72, 80, 100]
 }
