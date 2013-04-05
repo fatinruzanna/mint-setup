@@ -16,11 +16,6 @@ Steps in Setting Linux Mint as your Workstation
 	* Git commands
 
 
-* VMWare Workstation
-	* VM tools
-	* Shared folder
-
-
 * Sublime Text 2
 	* Setup
 	* Shortcuts
