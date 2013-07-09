@@ -6,14 +6,14 @@ Installing Oracle JDK6
 
 1. Add webupd8team apt repository for Oracle Java
 
-	(sudo) add-apt-repository ppa:webupd8team/java
-	(sudo) apt-get update
-	(sudo) apt-get install oracle-java6-installer
+		(sudo) add-apt-repository ppa:webupd8team/java
+		(sudo) apt-get update
+		(sudo) apt-get install oracle-java6-installer
 
 
 2. Follow instructions to install. Once installed, you may check the version with:
 
-	java -version
+		java -version
 
 
 	You should see the following in your terminal:
@@ -25,7 +25,7 @@ Installing Oracle JDK6
 
 3. If you're not using version 1.6.0.x by Oracle (e.g. OpenJDK's version), run the following command to update the Java version to use:
 
-	(sudo) update-java-alternatives -s java-6-oracle
+		(sudo) update-java-alternatives -s java-6-oracle
 
 
 	Ignore any warnings that pop-up. You may run the command in the previous step to check the version again. Available versions can be checked at /usr/lib/jvm.
@@ -33,7 +33,7 @@ Installing Oracle JDK6
 
 4. To set Oracle JDK6 environment variables correctly, run the following command:
 
-	(sudo) apt-get install oracle-java6-set-default
+		(sudo) apt-get install oracle-java6-set-default
 
 
 
