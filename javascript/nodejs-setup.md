@@ -13,18 +13,11 @@ Please refer to the last section if you do not wish to use NVM.
 
 1. Clone the git repository to your local machine:
 
-		git clone git://github.com/creationix/nvm.git ~/git/nvm
-
-	**OR**
-
-	You may want to clone it in your user directory, and rename it to hide the folder:
-
-		git clone git://github.com/creationix/nvm.git ~/nvm
-		(sudo) mv ~/nvm ~/.nvm
+		git clone git://github.com/creationix/nvm.git ~/.nvm
 
 
 2. Place the contents in the _bashrc_ file (section: Node.js Version Manager) to your .bashrc file.
-**NOTE:** Replace **NVM_HOME** variable with the path to your local nvm git directory. In the example given, NVM repository is cloned at ~/git/nvm. Source your .bashrc file to use nvm immediately:
+**NOTE:** Replace **NVM_HOME** variable with the path to your local nvm git directory. In the example given, NVM repository is cloned at ~/.nvm. Source your .bashrc file to use nvm immediately:
 
 		source ~/.bashrc
 
