@@ -46,9 +46,25 @@
 [pull]
     rebase = true
 
-
 [color "diff"]
     meta = yellow bold
     frag = magenta bold
     old = red bold
     new = green bold
+
+[merge]
+    tool = diffmerge
+
+[mergetool "diffmerge"]
+    cmd = diffmerge --merge --result=$MERGED $LOCAL $BASE $REMOTE
+    trustExitCode = true
+
+[mergetool]
+    keepBackup = false
+
+[diff]
+    tool = diffmerge
+
+[difftool "diffmerge"]
+    cmd = diffmerge $LOCAL $REMOTE
+
