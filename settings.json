@@ -1,0 +1,76 @@
+{
+    "apt": {
+        "remove": [
+            "vim",
+            "vim-runtime",
+            "gvim",
+            "vim-tiny",
+            "vim-common",
+            "vim-gui-common"
+        ],
+        "install": [
+            "autoconf",
+            "libcurl3",
+            "libtool",
+            "libevent-dev",
+            "wget",
+            "curl",
+            "openssl",
+            "memcached",
+            "python-memcache",
+            "rsyslog",
+            "logrotate",
+            "supervisor",
+            "nginx",
+            "git",
+            "gitk",
+            "python-dev",
+            "python-setuptools",
+            "rabbitmq-server",
+            "zsh",
+            "tmux",
+            "vim-nox",
+            "terminator",
+            "chromium-browser",
+            "sublime-text",
+            "mysql-server-5.6",
+            "mysql-client-5.6",
+            "libmysqlclient-dev",
+            "ruby"
+        ]
+    },
+
+    "gem": {
+        "uninstall": [
+
+        ],
+        "install": [
+            "sass",
+            "tmuxinator"
+        ]
+    },
+
+    "pip": {
+        "uninstall": [
+
+        ],
+        "install": [
+            "virtualenv",
+            "virtualenvwrapper",
+            "ipython",
+            "sphinx"
+        ]
+    },
+
+    "setup": {
+        "git": {
+            "name": "Fatin Ruzanna",
+            "email": "fatin.ruzanna@git.com",
+        },
+        "zsh": true,
+        "tmux": true,
+        "vim": true,
+        "python-virtualenv": true,
+        "nodejs-nvm": ["0.10.*"]
+    }
+}
