@@ -1,0 +1,111 @@
+set nocompatible
+filetype off
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+Plugin 'gmarik/Vundle.vim'
+Plugin 'flazz/vim-colorschemes'
+call vundle#end()
+filetype plugin indent on
+
+" set leader key
+let mapleader = ","
+
+" paste mode
+set pastetoggle=<F12>
+
+set t_Co=256
+set term=screen-256color
+colorscheme molokai
+syntax enable
+
+" edit .vimrc on the fly
+noremap <leader>ev <C-w><C-v><C-l>:e $MYVIMRC<cr>
+
+" spell check ',s'
+nmap <silent> <leader>s :set spell!<CR>
+map <leader>sn ]s
+map <leader>sp [s
+map <leader>sa zg
+map <leader>s? z=
+
+" have vim recognise .md files as .markdown
+au BufRead,BufNewFile *.md set filetype=markdown
+
+" better tabbing
+vnoremap < <gv
+vnoremap > >gv
+
+" reselect last pasted text
+nmap gV `[v`]
+
+" end of line chars
+set list
+set listchars=tab:▸\ ,eol:¬
+
+" save when I tab away
+au FocusLost * :wa
+
+" reselect text that was just pasted
+nnoremap <leader>v V`]
+
+" remap Esc
+imap jk <Esc>
+
+" moving between tabs
+nnoremap <silent> <C-t> :tabnew<CR>
+map <c-j> <c-w>j
+map <c-k> <c-w>k
+map <c-l> <c-w>l
+map <c-h> <c-w>h
+
+" tabbing and spacing
+set expandtab
+set autoindent
+set softtabstop=4
+set shiftwidth=4
+set tabstop=4
+set textwidth=0
+set nocompatible
+set nobackup
+set nowritebackup
+set noswapfile
+set history=999
+set backspace=indent,eol,start
+set ruler
+set showmode
+set laststatus=2
+set scrolloff=10
+set ch=2
+set hlsearch
+set gdefault
+set number
+set hidden
+set whichwrap+=<,>,[,]
+set wildmenu
+set title
+set incsearch
+set ignorecase
+set ttyfast
+set virtualedit=onemore
+set fileencodings=.
+set spelllang=en_gb
+set autochdir
+set foldmethod=indent
+set foldlevel=99
+
+filetype plugin indent on
+syntax on
+
+" bubble lines
+nmap <C-k> [e
+nmap <C-j> ]e
+vmap <C-k> [egv
+vmap <C-j> ]egv
+
+" when I close a tab, remove the buffer
+set nohidden
+
+" stop incrementing numbers by accident!
+nmap <C-a> <nop>
+nmap <C-x> <nop>
+
