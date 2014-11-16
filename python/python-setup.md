@@ -1,5 +1,5 @@
 Setup Python
-===========
+============
 
 Python 2.x comes pre-installed with Linux Mint. To install Python 3.x, use the following command:
 
@@ -61,7 +61,7 @@ Using virtualenv
 
 	This will create a directory call _my-env_ and install the necessary python modules. Parameters can be passed in to customize the virtual environment.
 
-	To create Python environment with distribution type, _distribute_: 
+	To create Python environment with distribution type, _distribute_:
 
 		virtualenv --distribute <environment name>
 
