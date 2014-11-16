@@ -1,2 +1,4 @@
+.idea
 *.html
-
+*.log
+*.tmp
