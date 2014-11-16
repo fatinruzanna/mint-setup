@@ -24,7 +24,7 @@ The configuration below are necessary:
 		git config --global user.email <your email>
 	**Example:**
 
-		git config --global user.name "john.doe@gmail.com"
+		git config --global user.email "john.doe@gmail.com"
 
 
 	E-mail account can be fake, but in order to be used with GitHub, the e-mail needs to be added to GitHub.
@@ -62,7 +62,7 @@ Setup GitHub with SSH
 
 4. View list of your ssh keys registered to ssh-agent
 
-		ssh-add -l 
+		ssh-add -l
 
 
 5. Setup github.com as a known host.
@@ -85,18 +85,22 @@ Update Terminal Prompt with Git branch
 
 1. Clone git repository
 
-		git clone git://git.kernel.org/pub/scm/git/git.git
+		git clone git://git.kernel.org/pub/scm/git/git.git ~/.git
 
 
 2. Copy git-completion.bash to */bin/
-		
-		(sudo) cp git/contrib/completion/git-completion.bash git-completion.sh
-		(sudo) chmod u+x git-completion.sh
-		(sudo) mkdir ~/bin
-		(sudo) cp git-completion.sh ~/bin
+
+		cp ~/.git/contrib/completion/git-completion.bash ~/bin/git/git-completion.sh
+		mkdir ~/bin/git
+		chmod u+x ~/bin/git/git-completion.sh
 
 
-3. Add to your .bashrc file with the contents in _bashrc_ file, and source your .bashrc file
+3. Remove the git repository
+
+		rm -rf ~/.git
+
+
+4. Add to your .bashrc file with the contents in _bashrc_ file, and source your .bashrc file
 
 		source ~/.bashrc
 
