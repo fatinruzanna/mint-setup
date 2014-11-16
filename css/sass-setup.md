@@ -13,6 +13,6 @@ Setup SASS
 	(sudo) apt-get install rubygems
 
 
-2. Issue following commmand to install Compass gem, which installs Compass and SASS libraries:
+2. Issue following commmand to install sass gem, which installs Sass libraries:
 
-	(sudo) gem install compass
+	(sudo) gem install sass
