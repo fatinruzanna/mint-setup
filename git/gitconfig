@@ -21,6 +21,7 @@
     rb = rebase
     rbc = rebase --continue
     rbs = rebase --skip
+    rh = reset HEAD^
     rl = reflog
     rs = remote show
     rt = remote
