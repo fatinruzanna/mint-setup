@@ -43,13 +43,13 @@ The virtualenv tool can be installed using easy_install or pip
 
 5. Create a directory to store Python virtual environments. An example in user directory:
 
-		mkdir ~/python-env
+		mkdir ~/.python-env
 
 
 Using virtualenv
 -----------------
 
-1. Create a virtual environment. Go to the Python virtual environment directory (e.g. python-env) and issue the following command:
+1. Create a virtual environment. Go to the Python virtual environment directory (e.g. ~/.python-env) and issue the following command:
 
 		virtualenv <environment name>
 
@@ -83,7 +83,7 @@ Using virtualenv
 
 	**Example:**
 
-		source ~/python-env/python32/bin/activate
+		source ~/.python-env/python32/bin/activate
 
 
 	When a virtual environment is activated, the terminal prompt will be prefixed with the virtual environment name.
@@ -104,15 +104,14 @@ Using virtualenvwrapper
 
 virtualenvwrapper simplifies the usage of virtualenv through simpler commands. It is recommended that is installed.
 
-1. Add into .bashrc or .bash_profile
+1. Add to your .bashrc or .zshrc file with the contents in _bashrc_ file, and source your .bashrc or .zshrc file:
 
-		export WORKON_HOME="~/python-env"
-		source /usr/local/bin/virtualenvwrapper.sh
+		source ~/.bashrc
 
-	Update WORKON_HOME to the path of the directory where all the virtual environments are stored.
+	Update **WORKON_HOME** to the path of the directory where all the virtual environments are stored, if you did not follow these instructions to the dot
 
 
-2. Create a virtual environment. Go to the Python virtual environment directory (e.g. python-env) and issue the following command:
+2. Create a virtual environment. Go to the Python virtual environment directory (e.g. ~/.python-env) and issue the following command:
 
 		mkvirtualenv <environment name>
 

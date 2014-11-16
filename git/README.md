@@ -100,9 +100,11 @@ Update Terminal Prompt with Git branch
 		rm -rf ~/.git
 
 
-4. Add to your .bashrc file with the contents in _bashrc_ file, and source your .bashrc file
+4. Add to your .bashrc or .zshrc file with the contents in _bashrc_ file, and source your .bashrc or .zshrc file:
 
 		source ~/.bashrc
+
+	Update the path of the directory where _git-completion.sh_ is at, if you did not follow these instructions to the dot.
 
 
 **References:**
