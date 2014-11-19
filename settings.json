@@ -62,6 +62,13 @@
         ]
     },
 
+    "wget": {
+        "download": [
+            "http://download-us.sourcegear.com/DiffMerge/4.2.0/diffmerge_4.2.0.697.stable_amd64.deb",
+            "http://download-cf.jetbrains.com/python/pycharm-community-3.4.1.tar.gz"
+        ]
+    },
+
     "setup": {
         "git": {
             "name": "Fatin Ruzanna",

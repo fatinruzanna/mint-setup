@@ -1,3 +1,4 @@
+import os
 import contextlib
 import shlex
 import subprocess
@@ -72,6 +73,7 @@ class Setup():
         self._run_apt()
         self._run_gem()
         self._run_pip()
+        self._run_wget()
 
         # setup packages
         setup_config = self.config.get('setup')
@@ -152,6 +154,23 @@ class Setup():
             self._system_run('sudo pip install %s' % install_packages)
 
         self.pip_installed_packages = install_packages.split()
+
+
+    def _run_wget(self):
+        wget_config = self.config.get('wget')
+        if not wget_config:
+            return
+
+        download_directory = os.path.expanduser('~/Downloads')
+        if not download_directory:
+            return
+
+        download_packages = wget_config.get('download')
+        if download_packages:
+            self._system_run('sudo apt-get install -y -f wget')
+
+        for package in download_packages:
+            self._system_run('wget -P %s %s' % (download_directory, package))
 
 
     def _setup_shell_settings(self, setup_config):
@@ -297,7 +316,7 @@ class Setup():
 
 
     def _get_packages_from_list(self, config, key, default_list=None):
-        packages_list = config.get(key)
+        packages_list = config.get(key, [])
 
         final_packages_list = []
         if default_list:
