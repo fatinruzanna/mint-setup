@@ -49,7 +49,8 @@ def main():
     with open("settings.json") as f:
         config = json.load(f)
 
-    Setup(config).run()
+    setup = Setup(config)
+    setup.run()
 
 
 class Setup():
@@ -91,7 +92,7 @@ class Setup():
             return
 
         uninstall_packages = self._get_packages_from_list(apt_config, 'remove')
-        install_packages = self._get_packages_from_list(apt_config, 'install', add_list=DEFAULT_APT_INSTALL)
+        install_packages = self._get_packages_from_list(apt_config, 'install', default_list=DEFAULT_APT_INSTALL)
 
         self.log.debug('Uninstalling and installing apt packages')
 
@@ -291,13 +292,15 @@ class Setup():
             self._system_run('nvm install %s' % version)
 
 
-    def _get_packages_from_list(self, config, key, add_list=None):
+    def _get_packages_from_list(self, config, key, default_list=None):
         packages_list = config.get(key)
 
-        if add_list:
-            packages_list = add_list.extend(packages_list)
+        final_packages_list = []
+        if default_list:
+            final_packages_list.extend(default_list)
 
-        return ' '.join(packages_list) if packages_list else None
+        final_packages_list.extend(packages_list)
+        return ' '.join(final_packages_list) if final_packages_list else None
 
 
     def _add_to_shell_settings(self, settings_file):
