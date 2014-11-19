@@ -65,7 +65,7 @@
     "setup": {
         "git": {
             "name": "Fatin Ruzanna",
-            "email": "fatin.ruzanna@git.com",
+            "email": "fatin.ruzanna@git.com"
         },
         "zsh": true,
         "tmux": true,
