@@ -1,3 +1,4 @@
+import contextlib
 import shlex
 import subprocess
 import logging
@@ -85,6 +86,9 @@ class Setup():
         self._setup_python(setup_config)
         self._setup_nodejs(setup_config)
 
+        # clean up
+        self._clean_up()
+
 
     def _run_apt(self):
         apt_config = self.config.get('apt')
@@ -100,10 +104,10 @@ class Setup():
             self._system_run('sudo apt-get update')
 
         if uninstall_packages:
-            self._system_run('sudo apt-get remove %s' % uninstall_packages)
+            self._system_run('sudo apt-get remove -y %s' % uninstall_packages)
 
         if install_packages:
-            self._system_run('sudo apt-get install %s' % install_packages)
+            self._system_run('sudo apt-get install -y -f %s' % install_packages)
 
         self.apt_installed_packages = install_packages.split()
 
@@ -119,7 +123,7 @@ class Setup():
         self.log.debug('Uninstalling and installing gem packages')
 
         if uninstall_packages or install_packages:
-            self._system_run('sudo apt-get install rubygems')
+            self._system_run('sudo apt-get install -y -f rubygems')
 
         if uninstall_packages:
             self._system_run('sudo gem uninstall %s' % uninstall_packages)
@@ -181,7 +185,7 @@ class Setup():
             return
 
         if GIT_APT_PACKAGE not in self.apt_installed_packages:
-            self._system_run('sudo apt-get install %s' % GIT_APT_PACKAGE)
+            self._system_run('sudo apt-get install -y -f %s' % GIT_APT_PACKAGE)
 
         self._system_run('cp %s ~/.gitconfig' % GIT_DOT_GITCONFIG)
 
@@ -212,7 +216,7 @@ class Setup():
 
         # TODO: Detect from dpkg-query -l zsh
         if ZSH_APT_PACKAGE not in self.apt_installed_packages:
-            self._system_run('sudo apt-get install %s' % ZSH_APT_PACKAGE)
+            self._system_run('sudo apt-get install -y -f %s' % ZSH_APT_PACKAGE)
 
         self._system_run('sudo chsh -s /bin/zsh')
 
@@ -228,7 +232,7 @@ class Setup():
 
         # TODO: Detect from dpkg-query -l tmux
         if TMUX_APT_PACKAGE not in self.apt_installed_packages:
-            self._system_run('sudo apt-get install %s' % TMUX_APT_PACKAGE)
+            self._system_run('sudo apt-get install -y -f %s' % TMUX_APT_PACKAGE)
 
         self._system_run('cp %s ~/.tmux.conf' % TMUX_DOT_TMUXCONF)
 
@@ -241,8 +245,8 @@ class Setup():
         # TODO: Detect from dpkg-query -l vim-nox
         if VIM_APT_PACKAGE not in self.apt_installed_packages:
             unwanted_vim_packages = ' '.join(VIM_APT_PACKAGES_REMOVE)
-            self._system_run('sudo apt-get remove %s' % unwanted_vim_packages)
-            self._system_run('sudo apt-get install %s' % VIM_APT_PACKAGE)
+            self._system_run('sudo apt-get remove -y -f %s' % unwanted_vim_packages)
+            self._system_run('sudo apt-get install -y -f %s' % VIM_APT_PACKAGE)
 
         self._system_run('mkdir -p ~/.vim/bundle')
         self._system_run('git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vim')
@@ -315,18 +319,56 @@ class Setup():
         self._system_run('source %s' % self.shell_settings)
 
 
+    def _clean_up(self):
+        self._system_run('sudo apt-get autoremove')
+        self._system_run('sudo apt-get clean')
+        self._system_run('sudo apt-get autoclean')
+
+
     def _system_run(self, cmdline):
+        # unbuffered subprocess.Popen reference:
+        # https://gist.github.com/thelinuxkid/5114777
+
+        # Unix, Windows and old Macintosh end-of-line
+        newlines = ['\n', '\r\n', '\r']
+
+        def unbuffered(proc):
+            stream_type = 'stdout'
+            stream = getattr(proc, stream_type)
+
+            # NOT CLOSING SO THAT Popen.communicate() can read from stdout again
+            # with contextlib.closing(stream):
+            while True:
+                out = []
+                last = stream.read(1)
+
+                # Don't loop forever
+                if last == '' and proc.poll() is not None:
+                    break
+
+                while last not in newlines:
+                    # Don't loop forever
+                    if last == '' and proc.poll() is not None:
+                        break
+
+                    out.append(last)
+                    last = stream.read(1)
+
+                out = ''.join(out)
+                yield out
+
         self.log.debug('Executing [%s]' % cmdline)
         cmd = shlex.split(cmdline)
         proc = subprocess.Popen(cmd,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
+                                universal_newlines=True,
                                 )
-        (out, err) = proc.communicate()
 
-        if out:
-            self.log.info(out)
+        for line in unbuffered(proc):
+            self.log.info(line)
 
+        out, err = proc.communicate()
         if err:
             self.log.error(err)
 
