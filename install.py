@@ -70,6 +70,8 @@ class Setup():
 
     def run(self):
 
+        self.log.debug('*** INSTALLATION AND SETUP STARTING ... ***')
+
         # installation packages
         self._run_apt()
         self._run_gem()
@@ -92,27 +94,32 @@ class Setup():
         # clean up
         self._clean_up()
 
+        self.log.debug('*** ... THE END ***')
+
 
     def _run_apt(self):
         apt_config = self.config.get('apt')
         if not apt_config:
             return
 
-        uninstall_packages = self._get_packages_from_list(apt_config, 'remove')
-        install_packages = self._get_packages_from_list(apt_config, 'install', default_list=DEFAULT_APT_INSTALL)
+        uninstall_packages = apt_config.get('remove', [])
+        if uninstall_packages:
+            self.log.debug('*** Uninstalling apt packages ***')
+            for package in uninstall_packages:
+                self._system_run('sudo apt-get remove -y %s' % package)
 
-        self.log.debug('Uninstalling and installing apt packages')
-
-        if uninstall_packages or install_packages:
+        install_packages = []
+        install_packages.extend(DEFAULT_APT_INSTALL)
+        install_packages.extend(apt_config.get('install', []))
+        if install_packages:
+            self.log.debug('*** Updating apt packages ***')
             self._system_run('sudo apt-get update')
 
-        if uninstall_packages:
-            self._system_run('sudo apt-get remove -y %s' % uninstall_packages)
+            self.log.debug('*** Installing apt packages ***')
+            for package in install_packages:
+                self._system_run('sudo apt-get install -y -f %s' % package)
 
-        if install_packages:
-            self._system_run('sudo apt-get install -y -f %s' % install_packages)
-
-        self.apt_installed_packages = install_packages.split()
+        self.apt_installed_packages = install_packages
 
 
     def _run_gem(self):
@@ -120,21 +127,24 @@ class Setup():
         if not gem_config:
             return
 
-        uninstall_packages = self._get_packages_from_list(gem_config, 'uninstall')
-        install_packages = self._get_packages_from_list(gem_config, 'install')
-
-        self.log.debug('Uninstalling and installing gem packages')
+        uninstall_packages = gem_config.get('uninstall', [])
+        install_packages = gem_config.get('install', [])
 
         if uninstall_packages or install_packages:
-            self._system_run('sudo apt-get install -y -f rubygems')
+            self.log.debug('*** Installing ruby to get rubygems ***')
+            self._system_run('sudo apt-get install -y -f ruby')
 
         if uninstall_packages:
-            self._system_run('sudo gem uninstall %s' % uninstall_packages)
+            self.log.debug('*** Uninstalling gem packages ***')
+            for package in uninstall_packages:
+                self._system_run('sudo gem uninstall %s' % package)
 
         if install_packages:
-            self._system_run('sudo gem install %s' % install_packages)
+            self.log.debug('*** Installing gem packages ***')
+            for package in install_packages:
+                self._system_run('sudo gem install %s' % package)
 
-        self.gem_installed_packages = install_packages.split()
+        self.gem_installed_packages = install_packages
 
 
     def _run_pip(self):
@@ -142,19 +152,24 @@ class Setup():
         if not pip_config:
             return
 
-        uninstall_packages = self._get_packages_from_list(pip_config, 'uninstall')
-        install_packages = self._get_packages_from_list(pip_config, 'install')
+        uninstall_packages = pip_config.get('uninstall', [])
+        install_packages = pip_config.get('install', [])
 
         if uninstall_packages or install_packages:
+            self.log.debug('*** Installing pip ***')
             self._system_run('sudo easy_install pip')
 
         if uninstall_packages:
-            self._system_run('sudo pip uninstall %s' % uninstall_packages)
+            self.log.debug('*** Uninstalling pip packages ***')
+            for package in uninstall_packages:
+                self._system_run('sudo pip uninstall %s' % package)
 
         if install_packages:
-            self._system_run('sudo pip install %s' % install_packages)
+            self.log.debug('*** Installing pip packages ***')
+            for package in install_packages:
+                self._system_run('sudo pip install %s' % package)
 
-        self.pip_installed_packages = install_packages.split()
+        self.pip_installed_packages = install_packages
 
 
     def _run_wget(self):
@@ -165,10 +180,12 @@ class Setup():
         home_download_directory = os.path.join(self.home_dir, 'Downloads')
         download_packages = wget_config.get('download')
         if download_packages:
+            self.log.debug('*** Installing wget ***')
             self._system_run('sudo apt-get install -y -f wget')
 
-        for package in download_packages:
-            self._system_run('wget -P %s %s' % (home_download_directory, package))
+            self.log.debug('*** Downloading files with wget ***')
+            for package in download_packages:
+                self._system_run('wget -P %s %s' % (home_download_directory, package))
 
 
     def _setup_shell_settings(self, setup_config):
@@ -183,6 +200,8 @@ class Setup():
 
         home_settings_file = os.path.join(self.home_dir, settings_file)
         self.shell_settings = home_settings_file
+
+        self.log.debug('*** Creating shell config file %s ***' % home_settings_file)
         self._system_run('touch %s' % home_settings_file)
 
 
@@ -191,20 +210,15 @@ class Setup():
         if not git_config:
             return
 
-        directory = git_config.get('directory')
-        if directory:
-            self.git_directory = directory
-            self._system_run('mkdir -p %s' % directory)
-
         name = git_config.get('name')
         email = git_config.get('email')
 
-        if not name and not email:
-            return
-
+        # TODO: Detect from dpkg-query -l git
+        self.log.debug('*** Setting up git configurations ***')
         if GIT_APT_PACKAGE not in self.apt_installed_packages:
             self._system_run('sudo apt-get install -y -f %s' % GIT_APT_PACKAGE)
 
+        self.log.debug('*** Setting up ~/.gitconfig ***')
         home_dot_gitconfig = os.path.join(self.home_dir, '.gitconfig')
         self._system_run('cp %s %s' % (GIT_DOT_GITCONFIG, home_dot_gitconfig))
 
@@ -220,6 +234,8 @@ class Setup():
         # self._system_run('git config --global branch.autosetuprebase always')
 
         if 'bashrc' in self.shell_settings:
+            self.log.debug('*** Setting up ~/.bashrc with git completion and terminal prompt ***')
+
             local_git_repo = os.path.join(self.home_dir, '.git')
             git_bin_dir = os.path.join(self.home_dir, 'bin/git')
             self._system_run('git clone git://git.kernel.org/pub/scm/git/git.git %s' % local_git_repo)
@@ -236,14 +252,18 @@ class Setup():
             return
 
         # TODO: Detect from dpkg-query -l zsh
+        self.log.debug('*** Setting up Zsh ***')
         if ZSH_APT_PACKAGE not in self.apt_installed_packages:
             self._system_run('sudo apt-get install -y -f %s' % ZSH_APT_PACKAGE)
 
+        self.log.debug('*** Switch shell to Zsh ***')
         self._system_run('sudo chsh -s /bin/zsh')
 
+        self.log.debug('*** Setting up oh-my-zsh ***')
         home_ohmyzsh_repo = os.path.join(self.home_dir, '.oh-my-zsh')
         self._system_run('git clone git://github.com/robbyrussell/oh-my-zsh.git %s' % home_ohmyzsh_repo)
 
+        self.log.debug('*** Setting up ~/.zshrc ***')
         self._add_to_shell_settings(ZSH_DOT_ZSHRC)
 
 
@@ -253,9 +273,11 @@ class Setup():
             return
 
         # TODO: Detect from dpkg-query -l tmux
+        self.log.debug('*** Setting up Tmux ***')
         if TMUX_APT_PACKAGE not in self.apt_installed_packages:
             self._system_run('sudo apt-get install -y -f %s' % TMUX_APT_PACKAGE)
 
+        self.log.debug('*** Setting up ~/.tmux.conf ***')
         home_tmux_conf = os.path.join(self.home_dir, '.tmux.conf')
         self._system_run('cp %s %s' % (TMUX_DOT_TMUXCONF, home_tmux_conf))
 
@@ -266,19 +288,23 @@ class Setup():
             return
 
         # TODO: Detect from dpkg-query -l vim-nox
+        self.log.debug('*** Setting up Vim ***')
         if VIM_APT_PACKAGE not in self.apt_installed_packages:
             unwanted_vim_packages = ' '.join(VIM_APT_PACKAGES_REMOVE)
             self._system_run('sudo apt-get remove -y -f %s' % unwanted_vim_packages)
             self._system_run('sudo apt-get install -y -f %s' % VIM_APT_PACKAGE)
 
+        self.log.debug('*** Setting up Vundle***')
         home_vim_dir = os.path.join(self.home_dir, '.vim')
         self._system_run('mkdir -p %s/bundle' % home_vim_dir)
         self._system_run('git clone https://github.com/gmarik/Vundle.vim.git %s/bundle/Vundle.vim' % home_vim_dir)
 
+        self.log.debug('*** Setting up ~/.vimrc ***')
         home_vim_rc = os.path.join(self.home_dir, '.vimrc')
         self._system_run('cp %s %s' % (VIM_DOT_VIMRC, home_vim_rc))
         self._add_to_shell_settings(VIM_DOT_SHRC)
 
+        self.log.debug('*** Installing Vundle plugins ***')
         self._system_run('vim +PluginInstall')
 
 
@@ -287,6 +313,7 @@ class Setup():
         if not python_config:
             return
 
+        self.log.debug('*** Setting up Python virtual environments ***')
         if not self.pip_installed_packages:
             self._system_run('sudo easy_install pip')
 
@@ -298,9 +325,11 @@ class Setup():
         if PYTHON_VIRTUALENVWRAPPER_PIP_PACKAGE not in self.pip_installed_packages:
             self._system_run('sudo pip install %s' % PYTHON_VIRTUALENVWRAPPER_PIP_PACKAGE)
 
+        self.log.debug('*** Creating ~/.python-env directory ***')
         home_python_env_dir = os.path.join(self.home_dir, '.python-env')
         self._system_run('mkdir -p %s' % home_python_env_dir)
 
+        self.log.debug('*** Setting up shell config with virtualenvwrapper startup ***')
         self._add_to_shell_settings(PYTHON_DOT_SHRC)
 
 
@@ -310,6 +339,7 @@ class Setup():
             return
 
         # TODO: Detect from dpkg-query -l nodejs
+        self.log.debug('*** Setting up NVM ***')
         if NODEJS_APT_PACKAGE in self.apt_installed_packages:
             self.log.info('Node.js setup skipped, apt package installed already')
             return
@@ -317,10 +347,13 @@ class Setup():
         home_nvm_dir = os.path.join(self.home_dir, '.nvm')
         self._system_run('git clone git://github.com/creationix/nvm.git %s' % home_nvm_dir)
 
+        self.log.debug('*** Setting up shell config with nvm startup ***')
         self._add_to_shell_settings(NODEJS_DOT_SHRC)
 
-        for version in nodejs_versions:
-            self._system_run('nvm install %s' % version)
+        if nodejs_versions:
+            self.log.debug('*** Installing Node.js versions ***')
+            for version in nodejs_versions:
+                self._system_run('nvm install %s' % version)
 
 
     def _get_packages_from_list(self, config, key, default_list=None):
@@ -336,11 +369,11 @@ class Setup():
 
     def _add_to_shell_settings(self, settings_file):
         with open(settings_file, 'r') as f:
-            self.log.info('Reading settings from [%s]' % settings_file)
+            self.log.info('*** Reading settings from [%s] ***' % settings_file)
             data = f.read()
 
         with open(self.shell_settings, 'a') as f:
-            self.log.info('Writing settings to [%s]' % self.shell_settings)
+            self.log.info('*** Writing settings to [%s] ***' % self.shell_settings)
             f.write(data)
 
         self._system_run('source %s' % self.shell_settings)
@@ -384,7 +417,7 @@ class Setup():
                 out = ''.join(out)
                 yield out
 
-        self.log.debug('Executing [%s]' % cmdline)
+        self.log.debug('*** Executing [%s] ***' % cmdline)
         cmd = shlex.split(cmdline)
         proc = subprocess.Popen(cmd,
                                 stdout=subprocess.PIPE,
@@ -400,7 +433,7 @@ class Setup():
             self.log.error(err)
 
         if proc.returncode != 0:
-            msg = 'Error running [%s]' % cmdline
+            msg = ' *** Error running [%s] ***' % cmdline
             self.log.error(msg)
             raise RuntimeError(msg)
 
