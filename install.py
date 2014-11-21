@@ -66,6 +66,7 @@ class Setup():
         self.git_directory = None
         self.shell_settings = None
         self.home_dir = os.path.expanduser('~')
+        self.setup_summary = []
 
 
     def run(self):
@@ -93,6 +94,8 @@ class Setup():
 
         # clean up
         self._clean_up()
+
+        self._print_setup_summary()
 
         self.log.debug('*** ... THE END ***')
 
@@ -204,6 +207,8 @@ class Setup():
         self.log.debug('*** Creating shell config file %s ***' % home_settings_file)
         self._system_run('touch %s' % home_settings_file)
 
+        self._add_to_setup_summary('Shell config file: %s' % home_settings_file)
+
 
     def _setup_git(self, setup_config):
         git_config = setup_config.get('git')
@@ -233,6 +238,8 @@ class Setup():
         # TODO: Check version!!! Below is for < 1.7.9:
         # self._system_run('git config --global branch.autosetuprebase always')
 
+        self._add_to_setup_summary('Git config file: %s' % home_dot_gitconfig)
+
         if 'bashrc' in self.shell_settings:
             self.log.debug('*** Setting up ~/.bashrc with git completion and terminal prompt ***')
 
@@ -244,6 +251,8 @@ class Setup():
             self._system_run('chmod u+x %s/git-completion.sh' % git_bin_dir)
             self._system_run('rm -rf %s' % local_git_repo)
             self._add_to_shell_settings(GIT_DOT_SHRC)
+
+            self._add_to_setup_summary('Git completion and terminal prompt configured: %s' % self.shell_settings)
 
 
     def _setup_zsh(self, setup_config):
@@ -266,6 +275,9 @@ class Setup():
         self.log.debug('*** Setting up ~/.zshrc ***')
         self._add_to_shell_settings(ZSH_DOT_ZSHRC)
 
+        self._add_to_setup_summary('Zsh config file: %s' % self.shell_settings)
+        self._add_to_setup_summary('oh-my-zsh repository: %s' % home_ohmyzsh_repo)
+
 
     def _setup_tmux(self, setup_config):
         tmux_config = setup_config.get('tmux')
@@ -280,6 +292,8 @@ class Setup():
         self.log.debug('*** Setting up ~/.tmux.conf ***')
         home_tmux_conf = os.path.join(self.home_dir, '.tmux.conf')
         self._system_run('cp %s %s' % (TMUX_DOT_TMUXCONF, home_tmux_conf))
+
+        self._add_to_setup_summary('Tmux config file: %s' % home_tmux_conf)
 
 
     def _setup_vim(self, setup_config):
@@ -307,6 +321,9 @@ class Setup():
         self.log.debug('*** Installing Vundle plugins ***')
         self._system_run('vim +PluginInstall')
 
+        self._add_to_setup_summary('Vim config file: %s' % home_vim_rc)
+        self._add_to_setup_summary('Vim Vundle repository: %s/bundle/Vundle.vim' % home_vim_dir)
+
 
     def _setup_python(self, setup_config):
         python_config = setup_config.get('python-virtualenv')
@@ -332,6 +349,9 @@ class Setup():
         self.log.debug('*** Setting up shell config with virtualenvwrapper startup ***')
         self._add_to_shell_settings(PYTHON_DOT_SHRC)
 
+        self._add_to_setup_summary('Python virtual environments directory: %s' % home_python_env_dir)
+        self._add_to_setup_summary('virtualenvwrapper shell setup configured: %s' % self.shell_settings)
+
 
     def _setup_nodejs(self, setup_config):
         nodejs_versions = setup_config.get('nodejs-nvm')
@@ -350,10 +370,12 @@ class Setup():
         self.log.debug('*** Setting up shell config with nvm startup ***')
         self._add_to_shell_settings(NODEJS_DOT_SHRC)
 
-        if nodejs_versions:
-            self.log.debug('*** Installing Node.js versions ***')
-            for version in nodejs_versions:
-                self._system_run('nvm install %s' % version)
+        self.log.debug('*** Installing Node.js versions ***')
+        for version in nodejs_versions:
+            self._system_run('nvm install %s' % version)
+
+        self._add_to_setup_summary('NVM shell setup configured: %s' % self.shell_settings)
+        self._add_to_setup_summary('NVM repository: %s' % home_nvm_dir)
 
 
     def _get_packages_from_list(self, config, key, default_list=None):
@@ -379,10 +401,31 @@ class Setup():
         self._system_run('source %s' % self.shell_settings)
 
 
+    def _add_to_setup_summary(self, log):
+        if type(log) is not 'str':
+            return
+
+        self.setup_summary.append(log)
+
+
     def _clean_up(self):
         self._system_run('sudo apt-get autoremove')
         self._system_run('sudo apt-get clean')
         self._system_run('sudo apt-get autoclean')
+
+
+    def _print_setup_summary(self):
+        if not self.setup_summary:
+            return
+
+        self.log.info('\n*****************************************************')
+        self.log.info('*                      SUMMARY                      *')
+        self.log.info('*****************************************************\n')
+
+        for line in self.setup_summary:
+            self.log.info(line)
+
+        self.log.info('\n*****************************************************\n')
 
 
     def _system_run(self, cmdline):
