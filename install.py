@@ -65,6 +65,7 @@ class Setup():
         self.pip_installed_packages = []
         self.git_directory = None
         self.shell_settings = None
+        self.home_dir = os.path.expanduser('~')
 
 
     def run(self):
@@ -161,16 +162,13 @@ class Setup():
         if not wget_config:
             return
 
-        download_directory = os.path.expanduser('~/Downloads')
-        if not download_directory:
-            return
-
+        home_download_directory = os.path.join(self.home_dir, 'Downloads')
         download_packages = wget_config.get('download')
         if download_packages:
             self._system_run('sudo apt-get install -y -f wget')
 
         for package in download_packages:
-            self._system_run('wget -P %s %s' % (download_directory, package))
+            self._system_run('wget -P %s %s' % (home_download_directory, package))
 
 
     def _setup_shell_settings(self, setup_config):
@@ -179,12 +177,13 @@ class Setup():
             return
 
         if not setup_zsh:
-            settings_file = '~/.bashrc'
+            settings_file = '.bashrc'
         else:
-            settings_file = '~/.zshrc'
+            settings_file = '.zshrc'
 
-        self.shell_settings = settings_file
-        self._system_run('touch %s' % settings_file)
+        home_settings_file = os.path.join(self.home_dir, settings_file)
+        self.shell_settings = home_settings_file
+        self._system_run('touch %s' % home_settings_file)
 
 
     def _setup_git(self, setup_config):
@@ -206,7 +205,8 @@ class Setup():
         if GIT_APT_PACKAGE not in self.apt_installed_packages:
             self._system_run('sudo apt-get install -y -f %s' % GIT_APT_PACKAGE)
 
-        self._system_run('cp %s ~/.gitconfig' % GIT_DOT_GITCONFIG)
+        home_dot_gitconfig = os.path.join(self.home_dir, '.gitconfig')
+        self._system_run('cp %s %s' % (GIT_DOT_GITCONFIG, home_dot_gitconfig))
 
         if name:
             self._system_run('git config --global user.name "%s"' % name)
@@ -220,11 +220,13 @@ class Setup():
         # self._system_run('git config --global branch.autosetuprebase always')
 
         if 'bashrc' in self.shell_settings:
-            self._system_run('git clone git://git.kernel.org/pub/scm/git/git.git ~/.git')
-            self._system_run('mkdir -p ~/bin/git')
-            self._system_run('cp ~/.git/contrib/completion/git-completion.bash ~/bin/git/git-completion.sh')
-            self._system_run('chmod u+x ~/bin/git/git-completion.sh')
-            self._system_run('rm -rf ~/.git')
+            local_git_repo = os.path.join(self.home_dir, '.git')
+            git_bin_dir = os.path.join(self.home_dir, 'bin/git')
+            self._system_run('git clone git://git.kernel.org/pub/scm/git/git.git %s' % local_git_repo)
+            self._system_run('mkdir -p %s' % git_bin_dir)
+            self._system_run('cp %s/contrib/completion/git-completion.bash %s/git-completion.sh' % (local_git_repo, git_bin_dir))
+            self._system_run('chmod u+x %s/git-completion.sh' % git_bin_dir)
+            self._system_run('rm -rf %s' % local_git_repo)
             self._add_to_shell_settings(GIT_DOT_SHRC)
 
 
@@ -239,7 +241,8 @@ class Setup():
 
         self._system_run('sudo chsh -s /bin/zsh')
 
-        self._system_run('git clone git://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh')
+        home_ohmyzsh_repo = os.path.join(self.home_dir, '.oh-my-zsh')
+        self._system_run('git clone git://github.com/robbyrussell/oh-my-zsh.git %s' % home_ohmyzsh_repo)
 
         self._add_to_shell_settings(ZSH_DOT_ZSHRC)
 
@@ -253,7 +256,8 @@ class Setup():
         if TMUX_APT_PACKAGE not in self.apt_installed_packages:
             self._system_run('sudo apt-get install -y -f %s' % TMUX_APT_PACKAGE)
 
-        self._system_run('cp %s ~/.tmux.conf' % TMUX_DOT_TMUXCONF)
+        home_tmux_conf = os.path.join(self.home_dir, '.tmux.conf')
+        self._system_run('cp %s %s' % (TMUX_DOT_TMUXCONF, home_tmux_conf))
 
 
     def _setup_vim(self, setup_config):
@@ -267,10 +271,12 @@ class Setup():
             self._system_run('sudo apt-get remove -y -f %s' % unwanted_vim_packages)
             self._system_run('sudo apt-get install -y -f %s' % VIM_APT_PACKAGE)
 
-        self._system_run('mkdir -p ~/.vim/bundle')
-        self._system_run('git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vim')
+        home_vim_dir = os.path.join(self.home_dir, '.vim')
+        self._system_run('mkdir -p %s/bundle' % home_vim_dir)
+        self._system_run('git clone https://github.com/gmarik/Vundle.vim.git %s/bundle/Vundle.vim' % home_vim_dir)
 
-        self._system_run('cp %s ~/.vimrc' % VIM_DOT_VIMRC)
+        home_vim_rc = os.path.join(self.home_dir, '.vimrc')
+        self._system_run('cp %s %s' % (VIM_DOT_VIMRC, home_vim_rc))
         self._add_to_shell_settings(VIM_DOT_SHRC)
 
         self._system_run('vim +PluginInstall')
@@ -292,7 +298,8 @@ class Setup():
         if PYTHON_VIRTUALENVWRAPPER_PIP_PACKAGE not in self.pip_installed_packages:
             self._system_run('sudo pip install %s' % PYTHON_VIRTUALENVWRAPPER_PIP_PACKAGE)
 
-        self._system_run('mkdir -p ~/python-env')
+        home_python_env_dir = os.path.join(self.home_dir, '.python-env')
+        self._system_run('mkdir -p %s' % home_python_env_dir)
 
         self._add_to_shell_settings(PYTHON_DOT_SHRC)
 
@@ -307,7 +314,8 @@ class Setup():
             self.log.info('Node.js setup skipped, apt package installed already')
             return
 
-        self._system_run('git clone git://github.com/creationix/nvm.git ~/.nvm')
+        home_nvm_dir = os.path.join(self.home_dir, '.nvm')
+        self._system_run('git clone git://github.com/creationix/nvm.git %s' % home_nvm_dir)
 
         self._add_to_shell_settings(NODEJS_DOT_SHRC)
 
