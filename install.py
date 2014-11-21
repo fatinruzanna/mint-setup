@@ -86,7 +86,6 @@ class Setup():
 
         self._setup_shell_settings(setup_config)
         self._setup_git(setup_config)
-        self._setup_zsh(setup_config)
         self._setup_tmux(setup_config)
         self._setup_vim(setup_config)
         self._setup_python(setup_config)
@@ -193,8 +192,6 @@ class Setup():
 
     def _setup_shell_settings(self, setup_config):
         setup_zsh = setup_config.get('zsh')
-        if not setup_zsh:
-            return
 
         if not setup_zsh:
             settings_file = '.bashrc'
@@ -208,6 +205,8 @@ class Setup():
         self._system_run('touch %s' % home_settings_file)
 
         self._add_to_setup_summary('Shell config file: %s' % home_settings_file)
+
+        self._setup_zsh(setup_zsh)
 
 
     def _setup_git(self, setup_config):
@@ -275,7 +274,6 @@ class Setup():
         self.log.debug('*** Setting up ~/.zshrc ***')
         self._add_to_shell_settings(ZSH_DOT_ZSHRC)
 
-        self._add_to_setup_summary('Zsh config file: %s' % self.shell_settings)
         self._add_to_setup_summary('oh-my-zsh repository: %s' % home_ohmyzsh_repo)
 
 
