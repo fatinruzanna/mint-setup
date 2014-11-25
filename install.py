@@ -206,7 +206,7 @@ class Setup():
 
         self._add_to_setup_summary('Shell config file: %s' % home_settings_file)
 
-        self._setup_zsh(setup_zsh)
+        self._setup_zsh(setup_config)
 
 
     def _setup_git(self, setup_config):
