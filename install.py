@@ -116,6 +116,9 @@ class Setup():
         if install_packages:
             self.log.debug('*** Updating apt packages ***')
             self._system_run('sudo apt-get update')
+            
+            self.log.debug('*** Upgrading apt packages ***')
+            self._system_run('sudo apt-get upgrade')
 
             self.log.debug('*** Installing apt packages ***')
             for package in install_packages:
