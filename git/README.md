@@ -70,6 +70,11 @@ Setup GitHub with SSH
 		ssh -T git@github.com
 
 
+6. Setup bitbucket.org as a known host.
+
+		ssh -T git@bitbucket.org
+
+
 	**NOTE:** Enter _yes_ when prompted. DO NOT JUST PRESS ENTER!!!
 
 	This will add github.com to your list of known hosts, saved in ~/.ssh/known_hosts file.
