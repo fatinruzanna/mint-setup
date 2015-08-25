@@ -403,7 +403,7 @@ class Setup():
             self.log.info('*** Writing settings to [%s] ***' % self.shell_settings)
             f.write(data)
 
-        self._system_run(['bash', '-c', 'source', self.shell_settings)
+        self._system_run(['bash', '-c', 'source %s' % self.shell_settings])
 
 
     def _add_to_setup_summary(self, log):
