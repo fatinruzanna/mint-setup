@@ -324,7 +324,7 @@ class Setup():
         #self.log.debug('*** Installing Vundle plugins ***')
         #self._system_run(['vim', '+PluginInstall'])
 
-        self._add_to_setup_summary('DON\'T FORGET TO RUN... vim +PluginInstall')
+        self._add_to_setup_summary('*** DON\'T FORGET TO RUN... vim +PluginInstall')
         self._add_to_setup_summary('Vim config file: %s' % home_vim_rc)
         self._add_to_setup_summary('Vim Vundle repository: %s/bundle/Vundle.vim' % home_vim_dir)
 
@@ -380,7 +380,7 @@ class Setup():
         #for version in nodejs_versions:
             #self._system_run(['nvm', 'install', version])
 
-        self._add_to_setup_summary('DON\'T FORGET TO RUN... nvm install %s' % nodejs_versions[-1])
+        self._add_to_setup_summary('*** DON\'T FORGET TO RUN... nvm install %s' % nodejs_versions[-1])
         self._add_to_setup_summary('NVM shell setup configured: %s' % self.shell_settings)
         self._add_to_setup_summary('NVM repository: %s' % home_nvm_dir)
 
@@ -410,10 +410,8 @@ class Setup():
 
 
     def _add_to_setup_summary(self, log):
-        if type(log) is not 'str':
-            return
-
-        self.setup_summary.append(log)
+        if isinstance(log, basestring):
+            self.setup_summary.append(log)
 
 
     def _clean_up(self):
@@ -426,14 +424,18 @@ class Setup():
         if not self.setup_summary:
             return
 
-        self.log.info('\n*****************************************************')
+        self.log.info('')
+        self.log.info('*****************************************************')
         self.log.info('*                      SUMMARY                      *')
-        self.log.info('*****************************************************\n')
+        self.log.info('*****************************************************')
+        self.log.info('')
 
         for line in self.setup_summary:
             self.log.info(line)
 
-        self.log.info('\n*****************************************************\n')
+        self.log.info('')
+        self.log.info('*****************************************************')
+        self.log.info('')
 
 
     def _system_run(self, cmd):
