@@ -9,6 +9,7 @@
             "vim-gui-common"
         ],
         "install": [
+            "caja-open-terminal",
             "autoconf",
             "libcurl3",
             "libtool",
