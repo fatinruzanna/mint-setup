@@ -1,6 +1,6 @@
 import os
+import pwd
 import contextlib
-import shlex
 import subprocess
 import logging
 import json
@@ -66,6 +66,7 @@ class Setup():
         self.git_directory = None
         self.shell_settings = None
         self.home_dir = os.path.expanduser('~')
+        self.user = pwd.getpwuid(os.getuid())[0]
         self.setup_summary = []
 
 
@@ -108,18 +109,18 @@ class Setup():
         if uninstall_packages:
             self.log.debug('*** Uninstalling apt packages ***')
             for package in uninstall_packages:
-                self._system_run('sudo apt-get remove -y %s' % package)
+                self._system_run(['sudo', 'apt-get', 'remove', '-y', package])
 
         install_packages = []
         install_packages.extend(DEFAULT_APT_INSTALL)
         install_packages.extend(apt_config.get('install', []))
         if install_packages:
             self.log.debug('*** Updating apt packages ***')
-            self._system_run('sudo apt-get update')
+            self._system_run(['sudo', 'apt-get', 'update'])
 
             self.log.debug('*** Installing apt packages ***')
             for package in install_packages:
-                self._system_run('sudo apt-get install -y -f %s' % package)
+                self._system_run(['sudo', 'apt-get', 'install', '-y', '-f', package])
 
         self.apt_installed_packages = install_packages
 
@@ -134,17 +135,17 @@ class Setup():
 
         if uninstall_packages or install_packages:
             self.log.debug('*** Installing ruby to get rubygems ***')
-            self._system_run('sudo apt-get install -y -f ruby')
+            self._system_run(['sudo', 'apt-get', 'install', '-y', '-f', 'ruby'])
 
         if uninstall_packages:
             self.log.debug('*** Uninstalling gem packages ***')
             for package in uninstall_packages:
-                self._system_run('sudo gem uninstall %s' % package)
+                self._system_run(['sudo', 'gem', 'uninstall', package])
 
         if install_packages:
             self.log.debug('*** Installing gem packages ***')
             for package in install_packages:
-                self._system_run('sudo gem install %s' % package)
+                self._system_run(['sudo', 'gem', 'install', package])
 
         self.gem_installed_packages = install_packages
 
@@ -159,17 +160,17 @@ class Setup():
 
         if uninstall_packages or install_packages:
             self.log.debug('*** Installing pip ***')
-            self._system_run('sudo easy_install pip')
+            self._system_run(['sudo', 'easy_install', 'pip'])
 
         if uninstall_packages:
             self.log.debug('*** Uninstalling pip packages ***')
             for package in uninstall_packages:
-                self._system_run('sudo pip uninstall %s' % package)
+                self._system_run(['sudo', 'pip', 'uninstall', package])
 
         if install_packages:
             self.log.debug('*** Installing pip packages ***')
             for package in install_packages:
-                self._system_run('sudo pip install %s' % package)
+                self._system_run(['sudo', 'pip', 'install', package])
 
         self.pip_installed_packages = install_packages
 
@@ -183,11 +184,11 @@ class Setup():
         download_packages = wget_config.get('download')
         if download_packages:
             self.log.debug('*** Installing wget ***')
-            self._system_run('sudo apt-get install -y -f wget')
+            self._system_run(['sudo', 'apt-get', 'install', '-y', '-f', 'wget'])
 
             self.log.debug('*** Downloading files with wget ***')
             for package in download_packages:
-                self._system_run('wget -P %s %s' % (home_download_directory, package))
+                self._system_run(['wget', '-P', home_download_directory, package])
 
 
     def _setup_shell_settings(self, setup_config):
@@ -202,7 +203,7 @@ class Setup():
         self.shell_settings = home_settings_file
 
         self.log.debug('*** Creating shell config file %s ***' % home_settings_file)
-        self._system_run('touch %s' % home_settings_file)
+        self._system_run(['touch', home_settings_file])
 
         self._add_to_setup_summary('Shell config file: %s' % home_settings_file)
 
@@ -220,22 +221,22 @@ class Setup():
         # TODO: Detect from dpkg-query -l git
         self.log.debug('*** Setting up git configurations ***')
         if GIT_APT_PACKAGE not in self.apt_installed_packages:
-            self._system_run('sudo apt-get install -y -f %s' % GIT_APT_PACKAGE)
+            self._system_run(['sudo', 'apt-get', 'install', '-y', '-f', GIT_APT_PACKAGE])
 
         self.log.debug('*** Setting up ~/.gitconfig ***')
         home_dot_gitconfig = os.path.join(self.home_dir, '.gitconfig')
-        self._system_run('cp %s %s' % (GIT_DOT_GITCONFIG, home_dot_gitconfig))
+        self._system_run(['cp', GIT_DOT_GITCONFIG, home_dot_gitconfig])
 
         if name:
-            self._system_run('git config --global user.name "%s"' % name)
+            self._system_run(['git', 'config', '--global', 'user.name', '"%s"' % name])
 
         if email:
-            self._system_run('git config --global user.email "%s"' % email)
+            self._system_run(['git', 'config', '--global', 'user.email', '"%s"' % email])
 
         # TODO: Check version!!! Below is for >= 1.7.9:
-        # self._system_run('git config --global pull.rebase true')
+        # self._system_run(['git', 'config', '--global pull.rebase', 'true'])
         # TODO: Check version!!! Below is for < 1.7.9:
-        # self._system_run('git config --global branch.autosetuprebase always')
+        # self._system_run(['git', 'config', '--global branch.autosetuprebase', 'always'])
 
         self._add_to_setup_summary('Git config file: %s' % home_dot_gitconfig)
 
@@ -244,11 +245,13 @@ class Setup():
 
             local_git_repo = os.path.join(self.home_dir, '.git')
             git_bin_dir = os.path.join(self.home_dir, 'bin/git')
-            self._system_run('git clone git://git.kernel.org/pub/scm/git/git.git %s' % local_git_repo)
-            self._system_run('mkdir -p %s' % git_bin_dir)
-            self._system_run('cp %s/contrib/completion/git-completion.bash %s/git-completion.sh' % (local_git_repo, git_bin_dir))
-            self._system_run('chmod u+x %s/git-completion.sh' % git_bin_dir)
-            self._system_run('rm -rf %s' % local_git_repo)
+            if not os.path.exists(local_git_repo):
+                self._system_run(['git', 'clone', 'git://git.kernel.org/pub/scm/git/git.git', local_git_repo])
+
+            self._system_run(['mkdir', '-p', git_bin_dir])
+            self._system_run(['cp', '%s/contrib/completion/git-completion.bash' % local_git_repo, '%s/git-completion.sh' % git_bin_dir])
+            self._system_run(['chmod', 'u+x', '%s/git-completion.sh' % git_bin_dir])
+            self._system_run(['rm', '-rf', local_git_repo])
             self._add_to_shell_settings(GIT_DOT_SHRC)
 
             self._add_to_setup_summary('Git completion and terminal prompt configured: %s' % self.shell_settings)
@@ -262,14 +265,15 @@ class Setup():
         # TODO: Detect from dpkg-query -l zsh
         self.log.debug('*** Setting up Zsh ***')
         if ZSH_APT_PACKAGE not in self.apt_installed_packages:
-            self._system_run('sudo apt-get install -y -f %s' % ZSH_APT_PACKAGE)
+            self._system_run(['sudo', 'apt-get', 'install', '-y', '-f', ZSH_APT_PACKAGE])
 
         self.log.debug('*** Switch shell to Zsh ***')
-        self._system_run('sudo chsh -s /bin/zsh')
+        self._system_run(['sudo', 'chsh', '-s', '$(which zsh)', self.user])
 
         self.log.debug('*** Setting up oh-my-zsh ***')
         home_ohmyzsh_repo = os.path.join(self.home_dir, '.oh-my-zsh')
-        self._system_run('git clone git://github.com/robbyrussell/oh-my-zsh.git %s' % home_ohmyzsh_repo)
+        if not os.path.exists(home_ohmyzsh_repo):
+            self._system_run(['git', 'clone', 'git://github.com/robbyrussell/oh-my-zsh.git', home_ohmyzsh_repo])
 
         self.log.debug('*** Setting up ~/.zshrc ***')
         self._add_to_shell_settings(ZSH_DOT_ZSHRC)
@@ -285,11 +289,11 @@ class Setup():
         # TODO: Detect from dpkg-query -l tmux
         self.log.debug('*** Setting up Tmux ***')
         if TMUX_APT_PACKAGE not in self.apt_installed_packages:
-            self._system_run('sudo apt-get install -y -f %s' % TMUX_APT_PACKAGE)
+            self._system_run(['sudo', 'apt-get', 'install', '-y', '-f', TMUX_APT_PACKAGE])
 
         self.log.debug('*** Setting up ~/.tmux.conf ***')
         home_tmux_conf = os.path.join(self.home_dir, '.tmux.conf')
-        self._system_run('cp %s %s' % (TMUX_DOT_TMUXCONF, home_tmux_conf))
+        self._system_run(['cp', TMUX_DOT_TMUXCONF, home_tmux_conf])
 
         self._add_to_setup_summary('Tmux config file: %s' % home_tmux_conf)
 
@@ -302,23 +306,25 @@ class Setup():
         # TODO: Detect from dpkg-query -l vim-nox
         self.log.debug('*** Setting up Vim ***')
         if VIM_APT_PACKAGE not in self.apt_installed_packages:
-            unwanted_vim_packages = ' '.join(VIM_APT_PACKAGES_REMOVE)
-            self._system_run('sudo apt-get remove -y -f %s' % unwanted_vim_packages)
-            self._system_run('sudo apt-get install -y -f %s' % VIM_APT_PACKAGE)
+            for unwanted_vim_package in VIM_APT_PACKAGES_REMOVE:
+                self._system_run(['sudo', 'apt-get', 'remove', '-y', '-f', unwanted_vim_package])
+            self._system_run(['sudo', 'apt-get', 'install', '-y', '-f',  VIM_APT_PACKAGE])
 
         self.log.debug('*** Setting up Vundle***')
         home_vim_dir = os.path.join(self.home_dir, '.vim')
-        self._system_run('mkdir -p %s/bundle' % home_vim_dir)
-        self._system_run('git clone https://github.com/gmarik/Vundle.vim.git %s/bundle/Vundle.vim' % home_vim_dir)
+        self._system_run(['mkdir', '-p', '%s/bundle' % home_vim_dir])
+        if not os.path.exists(home_vim_dir):
+            self._system_run(['git', 'clone', 'https://github.com/gmarik/Vundle.vim.git', '%s/bundle/Vundle.vim' % home_vim_dir])
 
         self.log.debug('*** Setting up ~/.vimrc ***')
         home_vim_rc = os.path.join(self.home_dir, '.vimrc')
-        self._system_run('cp %s %s' % (VIM_DOT_VIMRC, home_vim_rc))
+        self._system_run(['cp', VIM_DOT_VIMRC, home_vim_rc])
         self._add_to_shell_settings(VIM_DOT_SHRC)
 
         self.log.debug('*** Installing Vundle plugins ***')
-        self._system_run('vim +PluginInstall')
+        #self._system_run(['vim', '+PluginInstall'])
 
+        self._add_to_setup_summary('DON\'T FORGET TO RUN... vim +PluginInstall')
         self._add_to_setup_summary('Vim config file: %s' % home_vim_rc)
         self._add_to_setup_summary('Vim Vundle repository: %s/bundle/Vundle.vim' % home_vim_dir)
 
@@ -330,19 +336,19 @@ class Setup():
 
         self.log.debug('*** Setting up Python virtual environments ***')
         if not self.pip_installed_packages:
-            self._system_run('sudo easy_install pip')
+            self._system_run(['sudo', 'easy_install', 'pip'])
 
         # TODO: Detect from pip freeze
         if PYTHON_VIRTUALENV_PIP_PACKAGE  not in self.pip_installed_packages:
-            self._system_run('sudo pip install %s' % PYTHON_VIRTUALENV_PIP_PACKAGE)
+            self._system_run(['sudo', 'pip', 'install', PYTHON_VIRTUALENV_PIP_PACKAGE])
 
         # TODO: Detect from pip freeze
         if PYTHON_VIRTUALENVWRAPPER_PIP_PACKAGE not in self.pip_installed_packages:
-            self._system_run('sudo pip install %s' % PYTHON_VIRTUALENVWRAPPER_PIP_PACKAGE)
+            self._system_run(['sudo', 'pip', 'install', PYTHON_VIRTUALENVWRAPPER_PIP_PACKAGE])
 
         self.log.debug('*** Creating ~/.python-env directory ***')
         home_python_env_dir = os.path.join(self.home_dir, '.python-env')
-        self._system_run('mkdir -p %s' % home_python_env_dir)
+        self._system_run(['mkdir', '-p', home_python_env_dir])
 
         self.log.debug('*** Setting up shell config with virtualenvwrapper startup ***')
         self._add_to_shell_settings(PYTHON_DOT_SHRC)
@@ -363,14 +369,15 @@ class Setup():
             return
 
         home_nvm_dir = os.path.join(self.home_dir, '.nvm')
-        self._system_run('git clone git://github.com/creationix/nvm.git %s' % home_nvm_dir)
+        if not os.path.exists(home_nvm_dir):
+            self._system_run(['git', 'clone', 'git://github.com/creationix/nvm.git', home_nvm_dir])
 
         self.log.debug('*** Setting up shell config with nvm startup ***')
         self._add_to_shell_settings(NODEJS_DOT_SHRC)
 
         self.log.debug('*** Installing Node.js versions ***')
         for version in nodejs_versions:
-            self._system_run('nvm install %s' % version)
+            self._system_run(['nvm', 'install', version])
 
         self._add_to_setup_summary('NVM shell setup configured: %s' % self.shell_settings)
         self._add_to_setup_summary('NVM repository: %s' % home_nvm_dir)
@@ -396,7 +403,7 @@ class Setup():
             self.log.info('*** Writing settings to [%s] ***' % self.shell_settings)
             f.write(data)
 
-        self._system_run('source %s' % self.shell_settings)
+        self._system_run(['bash', '-c', 'source', self.shell_settings)
 
 
     def _add_to_setup_summary(self, log):
@@ -407,9 +414,9 @@ class Setup():
 
 
     def _clean_up(self):
-        self._system_run('sudo apt-get autoremove')
-        self._system_run('sudo apt-get clean')
-        self._system_run('sudo apt-get autoclean')
+        self._system_run(['sudo', 'apt-get', 'autoremove'])
+        self._system_run(['sudo', 'apt-get', 'clean'])
+        self._system_run(['sudo', 'apt-get', 'autoclean'])
 
 
     def _print_setup_summary(self):
@@ -426,7 +433,7 @@ class Setup():
         self.log.info('\n*****************************************************\n')
 
 
-    def _system_run(self, cmdline):
+    def _system_run(self, cmd):
         # unbuffered subprocess.Popen reference:
         # https://gist.github.com/thelinuxkid/5114777
 
@@ -458,8 +465,8 @@ class Setup():
                 out = ''.join(out)
                 yield out
 
+        cmdline = ' '.join(cmd)
         self.log.debug('*** Executing [%s] ***' % cmdline)
-        cmd = shlex.split(cmdline)
         proc = subprocess.Popen(cmd,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
