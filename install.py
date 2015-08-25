@@ -276,7 +276,7 @@ class Setup():
             self._system_run(['git', 'clone', 'git://github.com/robbyrussell/oh-my-zsh.git', home_ohmyzsh_repo])
 
         self.log.debug('*** Setting up ~/.zshrc ***')
-        self._add_to_shell_settings(ZSH_DOT_ZSHRC)
+        self._add_to_shell_settings(ZSH_DOT_ZSHRC, source_file=False)
 
         self._add_to_setup_summary('oh-my-zsh repository: %s' % home_ohmyzsh_repo)
 
@@ -308,7 +308,7 @@ class Setup():
         if VIM_APT_PACKAGE not in self.apt_installed_packages:
             for unwanted_vim_package in VIM_APT_PACKAGES_REMOVE:
                 self._system_run(['sudo', 'apt-get', 'remove', '-y', '-f', unwanted_vim_package])
-            self._system_run(['sudo', 'apt-get', 'install', '-y', '-f',  VIM_APT_PACKAGE])
+            self._system_run(['sudo', 'apt-get', 'install', '-y', '-f', VIM_APT_PACKAGE])
 
         self.log.debug('*** Setting up Vundle***')
         home_vim_dir = os.path.join(self.home_dir, '.vim')
@@ -321,7 +321,7 @@ class Setup():
         self._system_run(['cp', VIM_DOT_VIMRC, home_vim_rc])
         self._add_to_shell_settings(VIM_DOT_SHRC)
 
-        self.log.debug('*** Installing Vundle plugins ***')
+        #self.log.debug('*** Installing Vundle plugins ***')
         #self._system_run(['vim', '+PluginInstall'])
 
         self._add_to_setup_summary('DON\'T FORGET TO RUN... vim +PluginInstall')
@@ -336,6 +336,7 @@ class Setup():
 
         self.log.debug('*** Setting up Python virtual environments ***')
         if not self.pip_installed_packages:
+            self._system_run(['sudo', 'apt-get', 'install', '-y', '-f', 'python-setuptools'])
             self._system_run(['sudo', 'easy_install', 'pip'])
 
         # TODO: Detect from pip freeze
@@ -375,10 +376,11 @@ class Setup():
         self.log.debug('*** Setting up shell config with nvm startup ***')
         self._add_to_shell_settings(NODEJS_DOT_SHRC)
 
-        self.log.debug('*** Installing Node.js versions ***')
-        for version in nodejs_versions:
-            self._system_run(['nvm', 'install', version])
+        #self.log.debug('*** Installing Node.js versions ***')
+        #for version in nodejs_versions:
+            #self._system_run(['nvm', 'install', version])
 
+        self._add_to_setup_summary('DON\'T FORGET TO RUN... nvm install %s' % nodejs_versions[-1])
         self._add_to_setup_summary('NVM shell setup configured: %s' % self.shell_settings)
         self._add_to_setup_summary('NVM repository: %s' % home_nvm_dir)
 
@@ -394,7 +396,7 @@ class Setup():
         return ' '.join(final_packages_list) if final_packages_list else None
 
 
-    def _add_to_shell_settings(self, settings_file):
+    def _add_to_shell_settings(self, settings_file, source_file=True):
         with open(settings_file, 'r') as f:
             self.log.info('*** Reading settings from [%s] ***' % settings_file)
             data = f.read()
@@ -403,7 +405,8 @@ class Setup():
             self.log.info('*** Writing settings to [%s] ***' % self.shell_settings)
             f.write(data)
 
-        self._system_run(['bash', '-c', 'source %s' % self.shell_settings])
+        if source_file:
+            self._system_run(['bash', '-c', 'source %s' % self.shell_settings])
 
 
     def _add_to_setup_summary(self, log):
