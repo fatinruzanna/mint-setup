@@ -268,7 +268,7 @@ class Setup():
             self._system_run(['sudo', 'apt-get', 'install', '-y', '-f', ZSH_APT_PACKAGE])
 
         self.log.debug('*** Switch shell to Zsh ***')
-        self._system_run(['sudo', 'chsh', '-s', '$(which zsh)', self.user])
+        self._system_run(['sudo', 'chsh', '-s', '/bin/bash', self.user])
 
         self.log.debug('*** Setting up oh-my-zsh ***')
         home_ohmyzsh_repo = os.path.join(self.home_dir, '.oh-my-zsh')
