@@ -25,6 +25,7 @@
             "nginx",
             "git",
             "gitk",
+            "meld",
             "python-dev",
             "python-setuptools",
             "ipython",
@@ -39,7 +40,8 @@
             "mysql-client",
             "mysql-workbench",
             "libmysqlclient-dev",
-            "ruby"
+            "ruby",
+            "ruby-devel"
         ]
     },
 

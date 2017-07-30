@@ -1,10 +1,14 @@
 set nocompatible
 filetype off
+
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
-Plugin 'gmarik/Vundle.vim'
+
+Plugin 'VundleVim/Vundle.vim'
 Plugin 'flazz/vim-colorschemes'
+
 call vundle#end()
+
 filetype plugin indent on
 
 " set leader key

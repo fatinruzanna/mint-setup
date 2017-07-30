@@ -53,18 +53,21 @@
     new = green bold
 
 [merge]
-    tool = diffmerge
+    tool = meld
 
-[mergetool "diffmerge"]
-    cmd = diffmerge --merge --result=$MERGED $LOCAL $BASE $REMOTE
+[mergetool "meld"]
+    cmd = meld "$LOCAL" "$MERGED" "$REMOTE" --output "$MERGED"
     trustExitCode = true
 
 [mergetool]
     keepBackup = false
 
 [diff]
-    tool = diffmerge
+    tool = meld
 
-[difftool "diffmerge"]
-    cmd = diffmerge $LOCAL $REMOTE
+[difftool]
+    prompt = false
+
+[difftool "meld"]
+    cmd = meld $LOCAL $REMOTE
 

@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import os
 import pwd
 import contextlib
@@ -314,7 +317,7 @@ class Setup():
         home_vim_dir = os.path.join(self.home_dir, '.vim')
         self._system_run(['mkdir', '-p', '%s/bundle' % home_vim_dir])
         if not os.path.exists(home_vim_dir):
-            self._system_run(['git', 'clone', 'https://github.com/gmarik/Vundle.vim.git', '%s/bundle/Vundle.vim' % home_vim_dir])
+            self._system_run(['git', 'clone', 'https://github.com/VundleVim/Vundle.vim.git', '%s/bundle/Vundle.vim' % home_vim_dir])
 
         self.log.debug('*** Setting up ~/.vimrc ***')
         home_vim_rc = os.path.join(self.home_dir, '.vimrc')
