@@ -117,6 +117,7 @@ class Setup():
         install_packages = []
         install_packages.extend(DEFAULT_APT_INSTALL)
         install_packages.extend(apt_config.get('install', []))
+        install_packages.extend(apt_config.get('install_extras', []))
         if install_packages:
             self.log.debug('*** Updating apt packages ***')
             self._system_run(['sudo', 'apt-get', 'update'])
@@ -159,9 +160,16 @@ class Setup():
             return
 
         uninstall_packages = pip_config.get('uninstall', [])
-        install_packages = pip_config.get('install', [])
 
-        if uninstall_packages or install_packages:
+        install_packages = []
+        install_packages.extend(pip_config.get('install', []))
+        install_packages.extend(pip_config.get('install_extras', []))
+
+        user_install_packages = []
+        user_install_packages.extend(pip_config.get('user_install', []))
+        user_install_packages.extend(pip_config.get('user_install_extras', []))
+
+        if uninstall_packages or install_packages or user_install_packages:
             self.log.debug('*** Installing pip ***')
             self._system_run(['sudo', 'easy_install', 'pip'])
 
@@ -173,7 +181,12 @@ class Setup():
         if install_packages:
             self.log.debug('*** Installing pip packages ***')
             for package in install_packages:
-                self._system_run(['sudo', 'pip', 'install', package])
+                self._system_run(['sudo', 'pip', 'install', "--upgrade", package])
+
+        if user_install_packages:
+            self.log.debug('*** Installing pip packages ***')
+            for package in user_install_packages:
+                self._system_run(['sudo', 'pip', 'install', "--upgrade", "--user", package])
 
         self.pip_installed_packages = install_packages
 
@@ -191,7 +204,7 @@ class Setup():
 
             self.log.debug('*** Downloading files with wget ***')
             for package in download_packages:
-                self._system_run(['wget', '-P', home_download_directory, package])
+                self._system_run(['wget', '--progress', 'bar',  '-P', home_download_directory, package])
 
 
     def _setup_shell_settings(self, setup_config):
@@ -316,8 +329,9 @@ class Setup():
         self.log.debug('*** Setting up Vundle***')
         home_vim_dir = os.path.join(self.home_dir, '.vim')
         self._system_run(['mkdir', '-p', '%s/bundle' % home_vim_dir])
-        if not os.path.exists(home_vim_dir):
-            self._system_run(['git', 'clone', 'https://github.com/VundleVim/Vundle.vim.git', '%s/bundle/Vundle.vim' % home_vim_dir])
+        vundle_home = '%s/bundle/Vundle.vim' % home_vim_dir
+        if not os.path.exists(vundle_home):
+            self._system_run(['git', 'clone', 'https://github.com/VundleVim/Vundle.vim.git', vundle_home])
 
         self.log.debug('*** Setting up ~/.vimrc ***')
         home_vim_rc = os.path.join(self.home_dir, '.vimrc')
@@ -329,7 +343,7 @@ class Setup():
 
         self._add_to_setup_summary('*** DON\'T FORGET TO RUN... vim +PluginInstall')
         self._add_to_setup_summary('Vim config file: %s' % home_vim_rc)
-        self._add_to_setup_summary('Vim Vundle repository: %s/bundle/Vundle.vim' % home_vim_dir)
+        self._add_to_setup_summary('Vim Vundle repository: %s' % vundle_home)
 
 
     def _setup_python(self, setup_config):

@@ -9,7 +9,6 @@
             "vim-gui-common"
         ],
         "install": [
-            "caja-open-terminal",
             "autoconf",
             "libcurl3",
             "libtool",
@@ -17,11 +16,8 @@
             "wget",
             "curl",
             "openssl",
-            "memcached",
-            "python-memcache",
             "rsyslog",
             "logrotate",
-            "supervisor",
             "nginx",
             "git",
             "gitk",
@@ -29,19 +25,26 @@
             "python-dev",
             "python-setuptools",
             "ipython",
-            "rabbitmq-server",
             "zsh",
             "tmux",
             "vim-nox",
-            "terminator",
             "chromium-browser",
             "sublime-text",
+            "ruby",
+            "ruby-dev"
+        ],
+        "install_extras": [
+            "dropbox",
+            "supervisor",
+            "terminator",
+            "caja-open-terminal",
+            "memcached",
+            "python-memcache",
+            "rabbitmq-server",
             "mysql-server",
             "mysql-client",
             "mysql-workbench",
-            "libmysqlclient-dev",
-            "ruby",
-            "ruby-devel"
+            "libmysqlclient-dev"
         ]
     },
 
@@ -64,20 +67,27 @@
             "virtualenvwrapper",
             "ipython",
             "sphinx"
+        ],
+        "install_extras": [
+        ],
+        "user_install": [
+            "awscli"
+        ],
+        "user_install_extras": [
         ]
     },
 
     "wget": {
         "download": [
-            "http://download-us.sourcegear.com/DiffMerge/4.2.0/diffmerge_4.2.0.697.stable_amd64.deb",
-            "http://download-cf.jetbrains.com/python/pycharm-community-3.4.1.tar.gz"
+            "http://download.sourcegear.com/DiffMerge/4.2.0/diffmerge_4.2.0.697.stable_amd64.deb",
+            "https://download-cf.jetbrains.com/python/pycharm-community-2017.2.tar.gz"
         ]
     },
 
     "setup": {
         "git": {
             "name": "Fatin Ruzanna",
-            "email": "fatin.ruzanna@git.com"
+            "email": "fatin.ruzanna+github@gmail.com"
         },
         "zsh": true,
         "tmux": true,
