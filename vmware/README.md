@@ -3,7 +3,7 @@ Mount VMWare Shared Folders
 
 1. Install open-vm-tools:
 
-        (sudo) apt-get install open-vm-tools
+        (sudo) apt-get install open-vm-tools open-vm-tools-desktop open-vm-tools-dev
 
 
 2. Open /etc/fstab file with your favourite editor:

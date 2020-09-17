@@ -1,42 +1,44 @@
 mint-setup
 ==========
 
-Steps in Setting Linux Mint as your Workstation
+Set up Debian/Ubuntu based Linux distribution as your Workstation or virtual machine
 
-1. Install necessary packages for code compilation (gcc, binutils, make, kernel sources)
+Basic setup
+-----------
 
-		(sudo) apt-get install build-essential
+1. Ensure user is in sudoers list. If not add user as sudoer.
 
+		su
+		adduser <insert your username here> sudo
 
-----
+2. Log out and re-log in to refresh sudoers list
 
-###Coming up...
+3. Install basic dependencies
 
-* Git
-	* Git commands
-
-
-* Sublime Text 2
-	* Setup
-	* Shortcuts
-	* Snippets
-	* Package Manager
+		sh bootstrap
 
 
-* PHPStorm
-	* Setup
+Install virtual machine dependencies
+------------------------------------
+
+a. (Optional) For VMWare, install open-vm-tools
+
+		(sudo) apt-get install open-vm-tools open-vm-tools-desktop open-vm-tools-dev
+
+b. (Optional) For Virtualbox, install Virtualbox Guest Additions
+
+		* From the virtual machine menu, select the “Devices -> CD/DVD Devices -> Choose a virtual CD/DVD disk file” option. Select the VBoxGuestAdditions.iso file.
+
+		* The VBoxGuestAdditions.iso file is usually located in the /usr/share/virtualbox/ directory on Linux, in the C:\Program Files\Oracle\VirtualBox directory on Windows and the Contents/MacOS directory of the VirtualBox package on Mac OS X.
+
+		* Mount the CD-ROM and install the VirtualBox Guest Additions:
+
+				(sudo) sh ./VBoxLinuxAdditions.run
 
 
-* Sphinx
-	* Setup
-	* Usage
+Install the rest of the dependencies
+------------------------------------
 
+1. Reboot
 
-* SASS
-	* Usage
-
-
-* Testacular
-	* Setup
-	* Configuration file
-
+2. TBC

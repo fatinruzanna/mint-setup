@@ -1,7 +1,9 @@
-Setup Git
-=========
+Install Git
+===========
 
-Git comes pre-installed with Linux Mint.
+1. Install git
+
+		(sudo) apt-get install git
 
 
 Configure Git
@@ -42,7 +44,7 @@ Setup GitHub with SSH
 
 1. Create RSA key using the following command:
 
-		ssh-keygen -t rsa -C "<your e-mail here>"
+		ssh-keygen -t rsa -b 4096 -C "<your e-mail here>"
 
 
 	When creating SSH keys it is recommended that passphrase is set for your keys. This will ensure that if your private key falls to the wrong hands, the passphrase will be another line of defence. Your key's passphrase will need to entered everytime your key is used.

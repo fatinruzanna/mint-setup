@@ -1,13 +1,5 @@
-Setup Python
-============
-
-Python 2.x comes pre-installed with Linux Mint. To install Python 3.x, use the following command:
-
-	(sudo) apt-get install python3
-
-
-Setup Python Virtual Environment
----------------------------------
+Set up Python Virtual Environment
+=================================
 
 The virtualenv tool can be installed using easy_install or pip
 
