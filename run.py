@@ -6,6 +6,7 @@ import pwd
 import contextlib
 import subprocess
 import click
+import config
 
 
 @click.group(chain=True, invoke_without_command=True)
@@ -48,6 +49,15 @@ def install_apt(ctx):
     s = ctx.obj['SETUPOBJ']
     s.test()
 
+    s.apt_update()
+
+    apt = config.install.get('apt', {})
+    uninstall_packages = apt.get('uninstall', [])
+    install_packages = apt.get('install', [])
+
+    s.apt_remove(uninstall_packages)
+    s.apt_install(install_packages)
+
 
 @cli.command()
 @click.pass_context
@@ -83,6 +93,22 @@ def download(ctx):
 
     s = ctx.obj['SETUPOBJ']
     s.test()
+
+    s.apt_install(['curl'])
+
+    dl = config.download or {}
+    deb_packages = dl.get('deb', [])
+    misc_packages = dl.get('misc', [])
+
+    click.echo('DEB packages = {}'.format(deb_packages))
+    click.echo('MISC packages = {}'.format(misc_packages))
+
+    for pkg in deb_packages:
+        target = s.download_file(**pkg)
+        s.deb_install(target)
+
+    for pkg in misc_packages:
+        s.download_file(**pkg)
 
 
 @cli.command()
@@ -148,6 +174,14 @@ def setup_zsh(ctx):
 class Setup:
     def __init__(self, debug):
         self.debug = debug
+
+        self.home_dir = os.path.expanduser('~')
+
+        self.apt_installed_packages = []
+        self.ruby_installed_packages = []
+        self.py_installed_packages = []
+        self.downloaded_packages = []
+
         self.counter = 0
 
         self.print_counter()
@@ -159,9 +193,40 @@ class Setup:
     def print_counter(self):
         click.echo('Current counter value = {}'.format(self.counter))
 
-    def run(self, command):
-        cmd = ' '.join(command)
-        return subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    def _run(self, command):
+        # return subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return subprocess.run(command)
+
+    def apt_update(self):
+        self._run(['sudo', 'apt-get', 'update'])
+
+    def apt_install(self, packages):
+        cmd = ['sudo', 'apt-get', '-f', '-y', 'install']
+        cmd.extend(packages)
+        self._run(cmd)
+
+        self.apt_installed_packages.extend(packages)
+
+    def apt_remove(self, packages):
+        cmd = ['sudo', 'apt-get', 'remove']
+        cmd.extend(packages)
+        self._run(cmd)
+        self.apt_cleanup()
+
+    def apt_cleanup(self):
+        self._run(['sudo', 'apt-get', '-y', 'autoremove'])
+        self._run(['sudo', 'apt-get', '-y', 'autoclean'])
+
+    def deb_install(self, package):
+        self._run(['sudo', 'dpkg', '-i', package])
+
+    def download_file(self, source, filename):
+        target = os.path.join(self.home_dir, 'Downloads', filename)
+
+        self._run(['curl', '-L', source, '--output', target])
+
+        self.downloaded_packages.append(target)
+        return target
 
 
 if __name__ == '__main__':

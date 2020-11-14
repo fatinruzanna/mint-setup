@@ -39,25 +39,21 @@ install = {
 }
 
 download = {
-    """
-    Each item in the list consists of 
-        filename: str
-        location: str
-    """
+    # Each item in the list consists of
+    #   source: str
+    #   filename: str
 
     'deb': [
         {
             'filename': 'vs-code.deb',
-            'location': 'https://go.microsoft.com/fwlink/?LinkID=760868',
-        },
-    ],
-    'tar': [
-         {
-            'filename': 'pycharm-professional-2020.2.3.tar.gz',
-            'location': 'https://download.jetbrains.com/python/pycharm-professional-2020.2.3.tar.gz',
+            'source': 'https://go.microsoft.com/fwlink/?LinkID=760868',
         },
     ],
     'misc': [
+        {
+            'filename': 'pycharm-professional-2020.2.3.tar.gz',
+            'source': 'https://download.jetbrains.com/python/pycharm-professional-2020.2.3.tar.gz',
+        },
     ]
 }
 
