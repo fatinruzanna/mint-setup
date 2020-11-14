@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "4a7fd38a2059440221d12f94b1f164253e097393bdaa26ee99895d043625bcb8"
+            "sha256": "4d4d75480f699d3c052c810535d33cc3c5be5e80e7e6ddb34ed50ec558d310a9"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -23,6 +23,10 @@
             ],
             "index": "pypi",
             "version": "==7.1.2"
+        },
+        "mint-setup": {
+            "path": ".",
+            "version": "==0.1"
         }
     },
     "develop": {}
