@@ -51,7 +51,7 @@ DEFAULT_APT_INSTALL = [
 
 
 def main():
-    with open("settings.json") as f:
+    with open("settings.obsolete.json") as f:
         config = json.load(f)
 
     setup = Setup(config)
