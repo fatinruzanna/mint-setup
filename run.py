@@ -67,6 +67,7 @@ def all(ctx):
 
     ctx.invoke(setup_docker)
     ctx.invoke(setup_git)
+    ctx.invoke(setup_sublime_text)
     ctx.invoke(setup_tmuxinator)
     ctx.invoke(setup_vim_nox)
     ctx.invoke(setup_zsh)
