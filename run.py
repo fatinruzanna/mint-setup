@@ -293,10 +293,7 @@ class Setup:
 
         target = os.path.join(self.home_dir, 'Downloads', filename)
 
-        self._run(['curl', '-L', source, '--output', target])
-
-        self.downloaded_packages.append(target)
-        return target
+        return self._download(source, target)
 
     def apt_update(self):
         self._run(['sudo', 'apt-get', 'update'])
@@ -394,15 +391,14 @@ class Setup:
 
         self._run(['sudo', 'usermod', '-aG', 'docker', self.user])
 
-    def setup_sublime_text(self, cfg):
-        self.apt_update()
-        self.apt_install(SUBLIME_TEXT_APT_PACKAGES_DEPS)
-
-        self._run_pipe(['sudo', 'curl', '-fsSL', 'https://download.sublimetext.com/sublimehq-pub.gpg'], ['sudo', 'apt-key', 'add', '-'])
-        self._run_pipe(['echo', 'deb https://download.sublimetext.com/ apt/stable/'], ['sudo', 'tee', '/etc/apt/sources.list.d/sublime-text.list'])
-
-        self.apt_update()
-        self.apt_install([SUBLIME_TEXT_APT_PACKAGE])
+        compose_cfg = {
+            'version': cfg.get('compose_version'),
+            'platform': self._get_cli_output(['uname', '-s']),
+            'architecture': self._get_cli_output(['uname', '-m']),
+        }
+        source = 'https://github.com/docker/compose/releases/download/{version}/docker-compose-{platform}-{architecture}'.format(**compose_cfg)
+        self._download(source, '/usr/local/bin/docker-compose', sudo=True)
+        self._run(['sudo', 'chmod', '+x', '/usr/local/bin/docker-compose'])
 
     def setup_git(self, cfg):
         self.apt_install(GIT_APT_PACKAGES)
@@ -441,6 +437,16 @@ class Setup:
             self._add_to_shell_settings(settings_file, GIT_DOT_SHRC)
 
             self._add_to_setup_summary('Git completion and terminal prompt configured: %s' % settings_file)
+
+    def setup_sublime_text(self, cfg):
+        self.apt_update()
+        self.apt_install(SUBLIME_TEXT_APT_PACKAGES_DEPS)
+
+        self._run_pipe(['sudo', 'curl', '-fsSL', 'https://download.sublimetext.com/sublimehq-pub.gpg'], ['sudo', 'apt-key', 'add', '-'])
+        self._run_pipe(['echo', 'deb https://download.sublimetext.com/ apt/stable/'], ['sudo', 'tee', '/etc/apt/sources.list.d/sublime-text.list'])
+
+        self.apt_update()
+        self.apt_install([SUBLIME_TEXT_APT_PACKAGE])
 
     def setup_tmuxinator(self, config):
         self.apt_install([TMUX_APT_PACKAGE])
@@ -488,6 +494,17 @@ class Setup:
         self._add_to_shell_settings(settings_file, ZSH_DOT_ZSHRC, source_file=False)
 
         self._add_to_setup_summary('oh-my-zsh repository: %s' % ohmyzsh_repo)
+
+    def _download(self, source, target, sudo=False):
+        cmd = []
+        if sudo:
+            cmd.append('sudo')
+        
+        cmd.extend(['curl', '-L', source, '--output', target])
+        self._run(cmd)
+
+        self.downloaded_packages.append(target)
+        return target
 
     def _run(self, command):
         # return subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

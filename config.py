@@ -66,6 +66,7 @@ setup = {
         'config': {
             'distribution': 'ubuntu',  # accepted values: debian, ubuntu
             'release': 'focal',  # specify Ubuntu release when using other distribution based from Ubuntu like Linux Mint
+            'compose_version': '1.27.4',
         }
     },
     'git': {
