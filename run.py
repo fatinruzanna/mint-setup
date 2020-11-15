@@ -18,11 +18,7 @@ def cli(ctx, debug):
     s = Setup(debug)
     ctx.obj['SETUPOBJ'] = s
 
-    click.echo('Debug mode is %s' % ('on' if debug else 'off'))
-
     if ctx.invoked_subcommand is None:
-        click.echo('I was invoked without subcommand')
-
         ctx.invoke(download)
 
         ctx.invoke(install_apt)
@@ -34,8 +30,6 @@ def cli(ctx, debug):
         ctx.invoke(setup_tmuxinator)
         ctx.invoke(setup_vim_nox)
         ctx.invoke(setup_zsh)
-    else:
-        click.echo('I am about to invoke %s' % ctx.invoked_subcommand)
 
 
 @cli.command()
@@ -47,7 +41,6 @@ def install_apt(ctx):
     click.echo('Install apt')
 
     s = ctx.obj['SETUPOBJ']
-    s.test()
 
     s.apt_update()
 
@@ -55,7 +48,7 @@ def install_apt(ctx):
     uninstall_packages = apt.get('uninstall', [])
     install_packages = apt.get('install', [])
 
-    s.apt_remove(uninstall_packages)
+    s.apt_uninstall(uninstall_packages)
     s.apt_install(install_packages)
 
 
@@ -68,7 +61,16 @@ def install_ruby(ctx):
     click.echo('Install ruby')
 
     s = ctx.obj['SETUPOBJ']
-    s.test()
+
+    ruby = config.install.get('ruby', {})
+    uninstall_packages = ruby.get('uninstall', [])
+    install_packages = ruby.get('install', [])
+
+    if uninstall_packages or install_packages:
+        s.apt_install(['ruby'])
+
+        s.gem_uninstall(uninstall_packages)
+        s.gem_install(install_packages)
 
 
 @cli.command()
@@ -80,7 +82,17 @@ def install_python(ctx):
     click.echo('Install python')
 
     s = ctx.obj['SETUPOBJ']
-    s.test()
+
+    py = config.install.get('python', {})
+    uninstall_packages = py.get('uninstall', [])
+    s.pip_uninstall(uninstall_packages)
+
+    install = py.get('install', {})
+    glb_install_packages = install.get('global', {})
+    usr_install_packages = install.get('user', {})
+    
+    s.pip_install(glb_install_packages)
+    s.pip_install(usr_install_packages, user=True)
 
 
 @cli.command()
@@ -92,16 +104,12 @@ def download(ctx):
     click.echo('Download packages')
 
     s = ctx.obj['SETUPOBJ']
-    s.test()
 
     s.apt_install(['curl'])
 
     dl = config.download or {}
     deb_packages = dl.get('deb', [])
     misc_packages = dl.get('misc', [])
-
-    click.echo('DEB packages = {}'.format(deb_packages))
-    click.echo('MISC packages = {}'.format(misc_packages))
 
     for pkg in deb_packages:
         target = s.download_file(**pkg)
@@ -120,7 +128,6 @@ def setup_docker(ctx):
     click.echo('Set up Docker')
 
     s = ctx.obj['SETUPOBJ']
-    s.test()
 
 
 @cli.command()
@@ -132,7 +139,6 @@ def setup_git(ctx):
     click.echo('Set up git')
 
     s = ctx.obj['SETUPOBJ']
-    s.test()
 
 
 @cli.command()
@@ -144,7 +150,6 @@ def setup_tmuxinator(ctx):
     click.echo('Set up tmuxinator')
 
     s = ctx.obj['SETUPOBJ']
-    s.test()
 
 
 @cli.command()
@@ -156,7 +161,6 @@ def setup_vim_nox(ctx):
     click.echo('Set up vim nox')
 
     s = ctx.obj['SETUPOBJ']
-    s.test()
 
 
 @cli.command()
@@ -168,7 +172,6 @@ def setup_zsh(ctx):
     click.echo('Set up zsh')
 
     s = ctx.obj['SETUPOBJ']
-    s.test()
 
 
 class Setup:
@@ -182,20 +185,17 @@ class Setup:
         self.py_installed_packages = []
         self.downloaded_packages = []
 
-        self.counter = 0
-
-        self.print_counter()
-
-    def test(self):
-        self.counter += 1
-        self.print_counter()
-
-    def print_counter(self):
-        click.echo('Current counter value = {}'.format(self.counter))
-
     def _run(self, command):
         # return subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return subprocess.run(command)
+
+    def download_file(self, source, filename):
+        target = os.path.join(self.home_dir, 'Downloads', filename)
+
+        self._run(['curl', '-L', source, '--output', target])
+
+        self.downloaded_packages.append(target)
+        return target
 
     def apt_update(self):
         self._run(['sudo', 'apt-get', 'update'])
@@ -207,7 +207,7 @@ class Setup:
 
         self.apt_installed_packages.extend(packages)
 
-    def apt_remove(self, packages):
+    def apt_uninstall(self, packages):
         cmd = ['sudo', 'apt-get', 'remove']
         cmd.extend(packages)
         self._run(cmd)
@@ -215,18 +215,43 @@ class Setup:
 
     def apt_cleanup(self):
         self._run(['sudo', 'apt-get', '-y', 'autoremove'])
+        self._run(['sudo', 'apt-get', '-y', 'clean'])
         self._run(['sudo', 'apt-get', '-y', 'autoclean'])
 
     def deb_install(self, package):
         self._run(['sudo', 'dpkg', '-i', package])
 
-    def download_file(self, source, filename):
-        target = os.path.join(self.home_dir, 'Downloads', filename)
+    def pip_uninstall(self, packages):
+        cmd = ['sudo', 'pip3', 'uninstall', '--yes']
+        cmd.extend(packages)
+        self._run(cmd)
 
-        self._run(['curl', '-L', source, '--output', target])
+    def pip_install(self, packages, user=False):
+        cmd = ['sudo', 'pip3', 'install', '--force-reinstall', '--progress-bar', 'pretty']
 
-        self.downloaded_packages.append(target)
-        return target
+        if user:
+            cmd.append('--user')
+
+        for pkg, version in packages.items():
+            if version == '*':
+                version = ''
+
+            pkg_w_version = '{}{}'.format(pkg, version)
+            cmd.append(pkg_w_version)
+
+            self.py_installed_packages.append(pkg)
+
+        self._run(cmd)
+
+    def gem_uninstall(self, packages):
+        cmd = ['sudo', 'gem', 'uninstall']
+        cmd.extend(packages)
+        self._run(cmd)
+
+    def gem_install(self, packages):
+        cmd = ['sudo', 'gem', 'install']
+        cmd.extend(packages)
+        self._run(cmd)
 
 
 if __name__ == '__main__':

@@ -3,38 +3,43 @@ install = {
         'uninstall': [
         ],
         'install': [
+            'caja-open-terminal',
+            'chromium',
             'curl',
-            'openssl',
-            'git',
             'gitk',
             'meld',
-            'python3-dev',
-            'chromium',
+            'openssl',
         ],
     },
     'ruby': {
-        'global': {
-            'uninstall': {
-            },
-            'install': {
-            },
-        },
+        'uninstall': [
+        ],
+        'install': [
+        ],
     },
     'python': {
-        'global': {
-            'uninstall': {
+        'uninstall': [
+        ],
+
+        # For package to install, specify package and desired version
+        #   Latest: 
+        #       'ipython': '*'
+        #   Specific version:
+        #       'ipython': '==7.19.0'
+        #   Minimum version:
+        #       'ipython': '>=7.19.0'
+
+        'install': {
+            'global': {
+                'ipython': '*',
             },
-            'install': {
-                'ipython': '*'
+
+            # TODO: Installing within user context not available when in virtualenv
+            'user': {
+                'awscli': '*',
             },
         },
-        'user': {
-            'uninstall': {
-            },
-            'install': {
-                'awscli': '*'
-            },
-        },
+        
     },
 }
 
