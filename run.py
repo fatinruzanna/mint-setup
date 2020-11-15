@@ -11,11 +11,18 @@ import config
 SHELL_BASH = 'bash'
 SHELL_ZSH = 'zsh'
 
+DOCKER_APT_PACKAGES_UNINSTALL = ['docker', 'docker-engine', 'docker.io', 'containerd', 'runc']
+DOCKER_APT_PACKAGES_DEPS = ['apt-transport-https', 'ca-certificates', 'curl', 'gnupg-agent', 'software-properties-common']
+DOCKER_APT_PACKAGES = ['docker-ce', 'docker-ce-cli', 'containerd.io']
+
 GIT_APT_PACKAGES = ['git', 'gitk', 'meld']
 GIT_DOT_SHRC = 'git/bashrc'
 GIT_DOT_GITCONFIG = 'git/gitconfig'
 
 RUBY_APT_PACKAGES = ['ruby', 'ruby-dev']
+
+SUBLIME_TEXT_APT_PACKAGES_DEPS = ['apt-transport-https']
+SUBLIME_TEXT_APT_PACKAGE = 'sublime-text'
 
 TMUX_APT_PACKAGE = 'tmux'
 TMUX_DOT_TMUXCONF = 'tmux/tmuxconf'
@@ -36,7 +43,7 @@ ZSH_APT_PACKAGE = 'zsh'
 ZSH_DOT_ZSHRC = 'zsh/zshrc'
 
 
-@click.group(chain=True, invoke_without_command=True)
+@click.group(chain=True)
 @click.option('--debug', default=False)
 @click.pass_context
 def cli(ctx, debug):
@@ -45,18 +52,24 @@ def cli(ctx, debug):
     s = Setup(debug)
     ctx.obj['SETUPOBJ'] = s
 
-    if ctx.invoked_subcommand is None:
-        ctx.invoke(download)
 
-        ctx.invoke(install_apt)
-        ctx.invoke(install_ruby)
-        ctx.invoke(install_python)
+@cli.command()
+@click.pass_context
+def all(ctx):
+    """
+    Install all packages and set up all enabled configs
+    """
+    ctx.invoke(download)
 
-        ctx.invoke(setup_docker)
-        ctx.invoke(setup_git)
-        ctx.invoke(setup_tmuxinator)
-        ctx.invoke(setup_vim_nox)
-        ctx.invoke(setup_zsh)
+    ctx.invoke(install_apt)
+    ctx.invoke(install_ruby)
+    ctx.invoke(install_python)
+
+    ctx.invoke(setup_docker)
+    ctx.invoke(setup_git)
+    ctx.invoke(setup_tmuxinator)
+    ctx.invoke(setup_vim_nox)
+    ctx.invoke(setup_zsh)
 
 
 @cli.command()
@@ -156,6 +169,14 @@ def setup_docker(ctx):
 
     s = ctx.obj['SETUPOBJ']
 
+    docker = config.setup.get('docker', {})
+    enabled = docker.get('enable', False)
+    if not enabled:
+        return
+
+    cfg = docker.get('config', {})
+    s.setup_docker(cfg)
+
 
 @cli.command()
 @click.pass_context
@@ -174,6 +195,25 @@ def setup_git(ctx):
 
     cfg = git.get('config', {})
     s.setup_git(cfg)
+
+
+@cli.command()
+@click.pass_context
+def setup_sublime_text(ctx):
+    """
+    Set up Sublime Text
+    """
+    click.echo('Set up Sublime Text')
+
+    s = ctx.obj['SETUPOBJ']
+
+    stext = config.setup.get('sublime_text', {})
+    enabled = stext.get('enable', False)
+    if not enabled:
+        return
+
+    cfg = stext.get('config', {})
+    s.setup_sublime_text(cfg)
 
 
 @cli.command()
@@ -335,6 +375,35 @@ class Setup:
         cmd.extend(packages)
         self._run(cmd)
 
+    def setup_docker(self, cfg):
+        self.apt_uninstall(DOCKER_APT_PACKAGES_UNINSTALL)
+
+        self.apt_update()
+        self.apt_install(DOCKER_APT_PACKAGES_DEPS)
+
+        self._run_pipe(['sudo', 'curl', '-fsSL', 'https://download.docker.com/linux/{distribution}/gpg'.format(**cfg)], ['sudo', 'apt-key', 'add', '-'])
+        self._run(['sudo', 'apt-key', 'fingerprint', '0EBFCD88'])
+
+        release = cfg.get('release') or self._get_cli_output(['lsb_release', '-cs'])
+        cfg['release'] = release
+
+        self._run(['sudo', 'add-apt-repository', 'deb [arch=amd64] https://download.docker.com/linux/{distribution} {release} stable'.format(**cfg)])
+
+        self.apt_update()
+        self.apt_install(DOCKER_APT_PACKAGES)
+
+        self._run(['sudo', 'usermod', '-aG', 'docker', self.user])
+
+    def setup_sublime_text(self, cfg):
+        self.apt_update()
+        self.apt_install(SUBLIME_TEXT_APT_PACKAGES_DEPS)
+
+        self._run_pipe(['sudo', 'curl', '-fsSL', 'https://download.sublimetext.com/sublimehq-pub.gpg'], ['sudo', 'apt-key', 'add', '-'])
+        self._run_pipe(['echo', 'deb https://download.sublimetext.com/ apt/stable/'], ['sudo', 'tee', '/etc/apt/sources.list.d/sublime-text.list'])
+
+        self.apt_update()
+        self.apt_install([SUBLIME_TEXT_APT_PACKAGE])
+
     def setup_git(self, cfg):
         self.apt_install(GIT_APT_PACKAGES)
 
@@ -409,7 +478,8 @@ class Setup:
         settings_file = self._setup_zshrc()
         self.apt_install([ZSH_APT_PACKAGE])
 
-        self._run(['sudo', 'chsh', '-s', '$(which zsh)', self.user])
+        bin_zsh = self._get_cli_output(['which', 'zsh'])
+        self._run(['sudo', 'chsh', '-s', bin_zsh, self.user])
         
         ohmyzsh_repo = os.path.join(self.home_dir, '.oh-my-zsh')
         if not os.path.exists(ohmyzsh_repo):
@@ -422,6 +492,18 @@ class Setup:
     def _run(self, command):
         # return subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return subprocess.run(command)
+
+    def _run_pipe(self, first_command, second_command):
+        process_first = subprocess.Popen(first_command, stdout=subprocess.PIPE, shell=False)
+        process_second = subprocess.Popen(second_command, stdin=process_first.stdout, stdout=subprocess.PIPE, shell=False)
+        
+        # Allow process_first to receive a SIGPIPE if process_second exits.
+        process_first.stdout.close()
+        return process_second.communicate()[0]
+        
+    def _get_cli_output(self, command):
+        out = subprocess.check_output(command, universal_newlines=True)
+        return out.rstrip()
 
     def _setup_bashrc(self):
         return self._setup_shell_settings(SHELL_BASH)

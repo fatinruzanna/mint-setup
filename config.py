@@ -62,9 +62,10 @@ download = {
 
 setup = {
     'docker': {
-        'enable': True,
+        'enable': False,
         'config': {
             'distribution': 'ubuntu',  # accepted values: debian, ubuntu
+            'release': 'focal',  # specify Ubuntu release when using other distribution based from Ubuntu like Linux Mint
         }
     },
     'git': {
