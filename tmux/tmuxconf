@@ -1,5 +1,5 @@
 # zsh time for now :)
-set-option -g default-shell /bin/zsh
+set-option -g default-shell $(which zsh)
 
 # use UTF8
 set -g utf8

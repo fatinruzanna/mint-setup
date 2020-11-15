@@ -11,10 +11,26 @@ import config
 SHELL_BASH = 'bash'
 SHELL_ZSH = 'zsh'
 
-
 GIT_APT_PACKAGES = ['git', 'gitk', 'meld']
 GIT_DOT_SHRC = 'git/bashrc'
 GIT_DOT_GITCONFIG = 'git/gitconfig'
+
+RUBY_APT_PACKAGES = ['ruby', 'ruby-dev']
+
+TMUX_APT_PACKAGE = 'tmux'
+TMUX_DOT_TMUXCONF = 'tmux/tmuxconf'
+
+VIM_APT_PACKAGES_UNINSTALL = [
+    'vim',
+    'vim-runtime',
+    'gvim',
+    'vim-tiny',
+    'vim-common',
+    'vim-gui-common',
+]
+VIM_APT_PACKAGE = 'vim-nox'
+VIM_DOT_SHRC = 'vim/bashrc'
+VIM_DOT_VIMRC = 'vim/vimrc'
 
 ZSH_APT_PACKAGE = 'zsh'
 ZSH_DOT_ZSHRC = 'zsh/zshrc'
@@ -78,7 +94,7 @@ def install_ruby(ctx):
     install_packages = ruby.get('install', [])
 
     if uninstall_packages or install_packages:
-        s.apt_install(['ruby', 'ruby-dev'])
+        s.apt_install(RUBY_APT_PACKAGES)
 
         s.gem_uninstall(uninstall_packages)
         s.gem_install(install_packages)
@@ -160,7 +176,6 @@ def setup_git(ctx):
     s.setup_git(cfg)
 
 
-
 @cli.command()
 @click.pass_context
 def setup_tmuxinator(ctx):
@@ -170,6 +185,14 @@ def setup_tmuxinator(ctx):
     click.echo('Set up tmuxinator')
 
     s = ctx.obj['SETUPOBJ']
+
+    tmux = config.setup.get('tmuxinator', {})
+    enabled = tmux.get('enable', False)
+    if not enabled:
+        return
+
+    cfg = tmux.get('config', {})
+    s.setup_tmuxinator(cfg)
 
 
 @cli.command()
@@ -181,6 +204,14 @@ def setup_vim_nox(ctx):
     click.echo('Set up vim nox')
 
     s = ctx.obj['SETUPOBJ']
+
+    nox = config.setup.get('vim_nox', {})
+    enabled = nox.get('enable', False)
+    if not enabled:
+        return
+
+    cfg = nox.get('config', {})
+    s.setup_vim_nox(cfg)
 
 
 @cli.command()
@@ -342,6 +373,38 @@ class Setup:
 
             self._add_to_setup_summary('Git completion and terminal prompt configured: %s' % settings_file)
 
+    def setup_tmuxinator(self, config):
+        self.apt_install([TMUX_APT_PACKAGE])
+
+        tmux_conf = os.path.join(self.home_dir, '.tmux.conf')
+        self._run(['cp', TMUX_DOT_TMUXCONF, tmux_conf])
+
+        self.apt_install(RUBY_APT_PACKAGES)
+        self.gem_install(['tmuxinator'])
+
+        self._add_to_setup_summary('Tmux config file: %s' % tmux_conf)
+
+    def setup_vim_nox(self, config):
+        self.apt_uninstall(VIM_APT_PACKAGES_UNINSTALL)
+        self.apt_install([VIM_APT_PACKAGE])
+
+        vim_dir = os.path.join(self.home_dir, '.vim')
+        self._run(['mkdir', '-p', '{}/bundle'.format(vim_dir)])
+        vundle_home = '{}/bundle/Vundle.vim'.format(vim_dir)
+        if not os.path.exists(vundle_home):
+            self._run(['git', 'clone', 'https://github.com/VundleVim/Vundle.vim.git', vundle_home])
+
+        home_vim_rc = os.path.join(self.home_dir, '.vimrc')
+        self._run(['cp', VIM_DOT_VIMRC, home_vim_rc])
+        
+        self._add_to_all_shell_settings(VIM_DOT_SHRC)
+
+        self._run(['vim', '+PluginInstall'])
+
+        self._add_to_setup_summary('*** DON\'T FORGET TO RUN... vim +PluginInstall')
+        self._add_to_setup_summary('Vim config file: %s' % home_vim_rc)
+        self._add_to_setup_summary('Vim Vundle repository: %s' % vundle_home)
+
     def setup_zsh(self, cfg):
         settings_file = self._setup_zshrc()
         self.apt_install([ZSH_APT_PACKAGE])
@@ -394,6 +457,12 @@ class Setup:
         if source_file:
             self._run(['bash', '-c', 'source', shell_file])
 
+    def _add_to_all_shell_settings(self, settings_file, source_file=True):
+        bashrc = self._setup_shell_settings(SHELL_BASH)
+        self._add_to_shell_settings(bashrc, settings_file, source_file=source_file)
+
+        zshrc = self._setup_shell_settings(SHELL_ZSH)
+        self._add_to_shell_settings(zshrc, settings_file, source_file=source_file)
 
     def _add_to_setup_summary(self, log):
         if isinstance(log, str):
