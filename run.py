@@ -67,7 +67,7 @@ def install_ruby(ctx):
     install_packages = ruby.get('install', [])
 
     if uninstall_packages or install_packages:
-        s.apt_install(['ruby'])
+        s.apt_install(['ruby', 'ruby-dev'])
 
         s.gem_uninstall(uninstall_packages)
         s.gem_install(install_packages)
