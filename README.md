@@ -41,4 +41,10 @@ Install the rest of the dependencies
 
 1. Reboot
 
-2. TBC
+2. Activate Python virtual environment
+
+		pipenv shell
+
+3. Take a look at `config.py` file. Configure packages to install and set up.
+
+4. Run `mint all` to install all listed packages and set up all enabled `setup` options.
