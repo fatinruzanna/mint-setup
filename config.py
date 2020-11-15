@@ -6,8 +6,6 @@ install = {
             'caja-open-terminal',
             'chromium',
             'curl',
-            'gitk',
-            'meld',
             'openssl',
         ],
     },
@@ -72,8 +70,9 @@ setup = {
     'git': {
         'enable': True,
         'config': {
-            "name": "Fatin Ruzanna",
-            "email": "fatin.ruzanna+gh@gmail.com",
+            'name': 'Fatin Ruzanna',
+            'email': 'fatin.ruzanna+gh@gmail.com',
+            'set_up_bash': True,
         },
     },
     'sublime_text': {

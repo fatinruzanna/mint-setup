@@ -8,7 +8,7 @@ To install Zsh, use the following command:
 
 Switch default shell to Zsh:
 
-		(sudo) chsh -s /bin/zsh
+		(sudo) chsh -s $(which zsh)
 
 
 Setup oh-my-zsh
