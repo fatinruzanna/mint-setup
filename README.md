@@ -48,3 +48,15 @@ Install the rest of the dependencies
 3. Take a look at `config.py` file. Configure packages to install and set up.
 
 4. Run `mint all` to install all listed packages and set up all enabled `setup` options.
+
+
+TODO
+----
+
+Things that require fixing or improvement:
+
+1. Make installation for Python package to work with Python user install directory (`--user` option)
+
+2. Shell settings are always appended so there will be duplicates each time the same setup is run.
+
+3. Zsh is assumed to be available in some setups (e.g. tmux)
